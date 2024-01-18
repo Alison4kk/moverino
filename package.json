@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "push-dist": "git subtree push --prefix dist https://github.com/Alison4kk/zen_geridesk.git gh-page",
+    "build-publish": "npm run build && git add . && git commit -m \"build\" && git push && git subtree push --prefix dist https://github.com/Alison4kk/zen_geridesk.git gh-page"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
