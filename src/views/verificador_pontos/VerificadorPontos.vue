@@ -3,10 +3,7 @@
     <h1>Verificador de Pontos</h1>
 
     <div>
-      <Offcanvas
-        title="Importar Dados"
-        button-text="Importar"
-      >
+      <Offcanvas title="Importar Dados" button-text="Importar">
         <template #body>
           <div class="d-flex flex-column gap-3">
             <CampoPontosTangerino
@@ -18,13 +15,19 @@
           </div>
         </template>
       </Offcanvas>
-
     </div>
 
     <div class="mt-3">
-        <div class="is-light-mode">
-          <Qalendar :events="events" :config="config" />
-        </div>
+      <div class="is-light-mode">
+        <Qalendar :events="events" :config="config" />
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <TabelaProblemas
+        :dados-movidesk="dadosMovidesk"
+        :dados-tangerino="dadosTangerino"
+      />
     </div>
   </div>
 </template>
@@ -44,9 +47,9 @@ import CampoApontamnetosMovidesk, {
   DadosMovidesk,
 } from "@/components/campos/CampoApontamnetosMovidesk.vue";
 import Offcanvas from "@/components/utils/Offcanvas.vue";
+import TabelaProblemas from "./TabelaProblemas.vue";
 
-
-const dadosTangerino = ref({ dias: [] } as DadosTangerino);
+const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
 const dadosMovidesk = ref({ eventos: [] } as DadosMovidesk);
 
 //Calendario
@@ -58,20 +61,18 @@ const montarEventos = () => {
   const novosEventos: eventInterface[] = [];
   let id = 0;
 
-  for (const dia of dadosTangerino.value.dias) {
-    for (const evento of dia.eventos) {
-      novosEventos.push({
-        title: "Trabalhando",
-        time: {
-          start: evento.inicio,
-          end: evento.fim,
-        },
-        isEditable: false,
-        color: "green",
-        id: `${id}`,
-      });
-      id++;
-    }
+  for (const evento of dadosTangerino.value.eventos) {
+    novosEventos.push({
+      title: "Trabalhando",
+      time: {
+        start: evento.inicio,
+        end: evento.fim,
+      },
+      isEditable: false,
+      color: "green",
+      id: `${id}`,
+    });
+    id++;
   }
 
   for (const evento of dadosMovidesk.value.eventos) {
@@ -87,29 +88,6 @@ const montarEventos = () => {
     });
     id++;
   }
-
-  // novosEventos.push({
-  //   title: "12371 - Acordos Comerciais",
-  //   time: {
-  //     start: "2024-01-12 09:00",
-  //     end: "2024-01-12 10:00",
-  //   },
-  //   isEditable: false,
-  //   color: "yellow",
-  //   id: `${id}`,
-  // });
-
-  // novosEventos.push({
-  //   title: "12371 - Analise de Compras",
-  //   time: {
-  //     start: "2024-01-12 09:59",
-  //     end: "2024-01-12 10:40",
-  //   },
-  //   isEditable: false,
-  //   color: "yellow",
-  //   id: `${id}`,
-  // });
-  // id++;
 
   events.value = novosEventos;
 };

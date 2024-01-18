@@ -37,6 +37,9 @@ export type EventoMovidesk = {
   inicio: string;
   fim: string;
   titulo: string;
+  tituloResumido: string;
+  ticket: string;
+  data: string;
 };
 
 export type DadosMovidesk = {
@@ -95,7 +98,10 @@ const processarCsv = (dadosCsv: string[][]) => {
       fim: moment(`${data} ${minutoFim}`, "DD/MM/YYYY HH:mm").format(
         "YYYY-MM-DD HH:mm"
       ),
-      titulo: `${linha[4]} ${linha[6]}`,
+      titulo: `${linha[4]} - ${linha[6]}`,
+      tituloResumido: `${linha[4]} - ${linha[6].slice(0, 20)}`,
+      ticket: linha[4],
+      data: data,
     };
 
     dadosMovideskNovo.eventos.push(eventoMovidesk);

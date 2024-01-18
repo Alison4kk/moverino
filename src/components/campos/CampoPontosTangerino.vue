@@ -22,7 +22,7 @@
         @change="inputChange"
       />
 
-      <h3 v-if="dadosTangerino.dias.length" class="text-success">OK</h3>
+      <h3 v-if="dadosTangerino.eventos.length" class="text-success">OK</h3>
       <h3 v-else class="text-danger">Não carregado</h3>
 
 
@@ -39,19 +39,16 @@ const emit = defineEmits(['updateDadosTangerino']);
 export type EventoTangerino = {
   inicio: string,
   fim: string,
+  data: string
 }
 
-export type DiaTangerino = {
-  data: string,
-  eventos: EventoTangerino[],
-}
 
 export type DadosTangerino = {
-  dias: DiaTangerino[]
+  eventos: EventoTangerino[]
 }
 
 const input = ref(null as HTMLInputElement | null);
-const dadosTangerino = ref({dias: []} as DadosTangerino);
+const dadosTangerino = ref({eventos: []} as DadosTangerino);
 
 const inputChange = () => {
   if (!input.value || !input.value.files || input.value?.files[0] == null)
@@ -81,7 +78,7 @@ const inputChange = () => {
 
 const processarCsv = (dadosCsv: string[][]) => {
   const dadosTangerinoNovo: DadosTangerino = {
-    dias: []
+    eventos: []
   };
 
   dadosCsv.forEach((linha, index) => {
@@ -100,12 +97,10 @@ const processarCsv = (dadosCsv: string[][]) => {
       const eventoTangerino: EventoTangerino = {
         inicio:  moment( `${data} ${minutoInicio}`, 'DD/MM/YYYY HH:mm' ).format('YYYY-MM-DD HH:mm') ,
         fim:  moment( `${data} ${minutoFim}`, 'DD/MM/YYYY HH:mm' ).format('YYYY-MM-DD HH:mm') ,
+        data: data,
       }
 
-      dadosTangerinoNovo.dias.push({
-        data: linha[2]?.replaceAll("'", ''),
-        eventos: [eventoTangerino]
-      });
+      dadosTangerinoNovo.eventos.push(eventoTangerino);
 
     }
   });
