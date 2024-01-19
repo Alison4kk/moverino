@@ -1,5 +1,5 @@
 <template>
-  <div class="card ">
+  <div class="card">
     <Menubar :model="items" />
   </div>
 </template>

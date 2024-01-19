@@ -1,20 +1,15 @@
 <template>
   <div>
-
-    <h1>Bem vindo</h1>
-
-    <p>
-      Acesse os recursos do Zen_genridesk através da barra de navegação
-    </p>
-
+    <Card class="w-1/4">
+      <template #title>Bem Vindo</template>
+      <template #content>
+        <p class="m-0">
+          Bem vindo ao Zen_Geridesk, acesse as ferramentas atravez do menu superior.
+        </p>
+        <InputSwitch/>
+      </template>
+    </Card>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
-export default defineComponent({
-  name: "HomeView",
-  components: {},
-});
-</script>
+<script setup lang="ts"></script>
