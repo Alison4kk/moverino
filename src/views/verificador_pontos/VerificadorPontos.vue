@@ -1,6 +1,8 @@
 <template>
   <div>
-    <h1>Verificador de Pontos</h1>
+
+    <InputText v-model="value1" />
+    <!-- <h1>Verificador de Pontos</h1>
 
     <div>
       <Offcanvas title="Importar Dados" button-text="Importar">
@@ -28,11 +30,14 @@
         :dados-movidesk="dadosMovidesk"
         :dados-tangerino="dadosTangerino"
       />
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
+
+const value1 = ref('0')
+
 import CampoPontosTangerino, {
   DadosTangerino,
 } from "@/components/campos/CampoPontosTangerino.vue";

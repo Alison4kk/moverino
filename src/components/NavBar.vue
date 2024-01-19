@@ -1,25 +1,27 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
-    <div class="container">
-      <a class="navbar-brand" href="#">Zen_geridesk</a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <RouterLink class="nav-link" to="verificador-pontos">Verificador Pontos</RouterLink>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <div class="card ">
+    <Menubar :model="items" />
+  </div>
 </template>
+
+<script setup lang="ts">
+import router from '@/router';
+import { ref } from 'vue';
+
+const items = ref([
+  {
+    label: "Home",
+    icon: "pi pi-home",
+    command: () => {
+      router.push({ name: "home" });
+    }
+  },
+  {
+    label: "Verificador de Pontos",
+    icon: "pi pi-clock",
+    command: () => {
+      router.push({ name: "verificador-pontos" });
+    }
+  },
+]);
+</script>
