@@ -1,36 +1,49 @@
 <template>
   <div>
+    <!-- <h3>{{ problemas.length ? 'Problemas encontrados: ' : 'Nenhum problema encontrado 🆗' }}</h3> -->
 
-    <h3>{{ problemas.length ? 'Problemas encontrados: ' : 'Nenhum problema encontrado 🆗' }}</h3>
+    <DataTable
+      :value="problemas"
+      v-if="problemas.length"
+      stripedRows
+      paginator
+      :rows="5"
+      :rowsPerPageOptions="[5, 10, 20, 50]"
+      tableStyle="min-width: 50rem"
+    >
+      <Column field="icone" header="">
+        <template #body="slotProps">
+          <i
+            v-if="slotProps.data.tipo == 'alerta'"
+            class="pi pi-exclamation-triangle"
+            style="color: orange"
+          ></i>
+          <i
+            v-else-if="slotProps.data.tipo == 'problema'"
+            class="pi pi-exclamation-circle"
+            style="color: red"
+          ></i>
+        </template>
+      </Column>
+      <Column field="data" header="Data"></Column>
+      <Column field="descricao" header="Descrição"></Column>
+    </DataTable>
 
-    <table v-if="problemas.length" class="table">
-      <thead>
-        <tr>
-          <th scope="col">Data</th>
-          <th scope="col">Descrição</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(problema, index) in problemas" :key="index">
-          <th scope="row">{{ problema.tipo == 'problema' ? '🛑' : '❕' }}  {{ problema.data }}</th>
-          <td scope="row">{{ problema.descricao }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <InlineMessage v-else severity="info">Nenhum problema encontrado</InlineMessage>
   </div>
 </template>
 
 <script setup lang="ts">
-import { DadosMovidesk } from '@/components/campos/CampoApontamnetosMovidesk.vue';
-import { DadosTangerino } from '@/components/campos/CampoPontosTangerino.vue';
-import moment from 'moment';
-import { PropType, ref, watch } from 'vue';
+import { DadosMovidesk } from "@/components/campos/CampoApontamnetosMovidesk.vue";
+import { DadosTangerino } from "@/components/campos/CampoPontosTangerino.vue";
+import moment from "moment";
+import { PropType, ref, watch } from "vue";
 
 export type ProblemaApontamento = {
-  tipo: 'alerta' | 'problema',
-  descricao: string,
-  data: string,
-}
+  tipo: "alerta" | "problema";
+  descricao: string;
+  data: string;
+};
 
 const props = defineProps({
   dadosTangerino: {
@@ -43,19 +56,21 @@ const props = defineProps({
   },
 });
 
-
 watch([() => props.dadosTangerino, () => props.dadosMovidesk], () => {
-  console.log('watch');
+  console.log("watch");
 
-  if (props.dadosTangerino.eventos.length == 0 || props.dadosMovidesk.eventos.length == 0) return;
+  if (
+    props.dadosTangerino.eventos.length == 0 ||
+    props.dadosMovidesk.eventos.length == 0
+  )
+    return;
   processarProblemas();
 });
 
-
 const processarProblemas = () => {
   problemas.value = [];
-  checadores.value.forEach(checador => checador());
-}
+  checadores.value.forEach((checador) => checador());
+};
 
 const problemas = ref([] as ProblemaApontamento[]);
 const checadores = ref([] as (() => void)[]);
@@ -83,7 +98,7 @@ checadores.value.push(() => {
 
       if (inicio.isBetween(inicio2, fim2) || fim.isBetween(inicio2, fim2)) {
         problemas.value.push({
-          tipo: 'problema',
+          tipo: "problema",
           descricao: `Apontamento "${evento.tituloResumido}" colidindo com "${evento2.tituloResumido}"`,
           data: evento.data,
         });
@@ -105,19 +120,22 @@ checadores.value.push(() => {
 
     let contido = false;
 
-      for (const eventoTangerino of props.dadosTangerino.eventos) {
-        const inicioTangerino = moment(eventoTangerino.inicio);
-        const fimTangerino = moment(eventoTangerino.fim);
+    for (const eventoTangerino of props.dadosTangerino.eventos) {
+      const inicioTangerino = moment(eventoTangerino.inicio);
+      const fimTangerino = moment(eventoTangerino.fim);
 
-        if (inicio.isBetween(inicioTangerino, fimTangerino) && fim.isBetween(inicioTangerino, fimTangerino)) {
-          contido = true;
-          break;
-        }
+      if (
+        inicio.isBetween(inicioTangerino, fimTangerino) &&
+        fim.isBetween(inicioTangerino, fimTangerino)
+      ) {
+        contido = true;
+        break;
       }
+    }
 
     if (!contido) {
       problemas.value.push({
-        tipo: 'problema',
+        tipo: "problema",
         descricao: `Apontamento "${evento.tituloResumido}" fora do horário de trabalho`,
         data: evento.data,
       });
@@ -132,29 +150,39 @@ checadores.value.push(() => {
   const eventosTangerino = props.dadosTangerino.eventos;
   const eventosMovidesk = props.dadosMovidesk.eventos;
 
-  const diasTangerino = eventosTangerino.map(evento => evento.data);
-  const diasMovidesk = eventosMovidesk.map(evento => evento.data);
+  const diasTangerino = eventosTangerino.map((evento) => evento.data);
+  const diasMovidesk = eventosMovidesk.map((evento) => evento.data);
 
   const dias = [...new Set([...diasTangerino, ...diasMovidesk])];
 
   for (const dia of dias) {
-    const eventosTangerinoDia = eventosTangerino.filter(evento => evento.data == dia);
-    const eventosMovideskDia = eventosMovidesk.filter(evento => evento.data == dia);
+    const eventosTangerinoDia = eventosTangerino.filter(
+      (evento) => evento.data == dia
+    );
+    const eventosMovideskDia = eventosMovidesk.filter(
+      (evento) => evento.data == dia
+    );
 
-    const minutosTangerino = eventosTangerinoDia.reduce((acc, evento) => acc + moment(evento.fim).diff(moment(evento.inicio), 'minutes'), 0);
-    const minutosMovidesk = eventosMovideskDia.reduce((acc, evento) => acc + moment(evento.fim).diff(moment(evento.inicio), 'minutes'), 0);
+    const minutosTangerino = eventosTangerinoDia.reduce(
+      (acc, evento) =>
+        acc + moment(evento.fim).diff(moment(evento.inicio), "minutes"),
+      0
+    );
+    const minutosMovidesk = eventosMovideskDia.reduce(
+      (acc, evento) =>
+        acc + moment(evento.fim).diff(moment(evento.inicio), "minutes"),
+      0
+    );
 
     if (minutosMovidesk / minutosTangerino < 0.95) {
       problemas.value.push({
-        tipo: 'alerta',
+        tipo: "alerta",
         descricao: `Apontamentos do Movidesk não chegam a 95% dos apontamentos do Tangerino no dia ${dia}`,
         data: dia,
       });
     }
   }
 });
-
-
 </script>
 
 <style scoped></style>

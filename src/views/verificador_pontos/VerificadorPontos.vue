@@ -1,7 +1,43 @@
 <template>
   <div>
+    <Toolbar>
+      <template #start>
+        <Button
+          icon="pi pi-database"
+          label="Importar"
+          class="mr-2"
+          @click="visible = true"
+        />
+      </template>
+    </Toolbar>
 
-    <InputText v-model="value1" />
+    <Sidebar
+      v-model:visible="visible"
+      header="Importar Dados"
+      style="width: 600px"
+    >
+        <div class="flex gap-3 flex-col">
+          <CampoPontosTangerino
+            @update-dados-tangerino="dadosTangerino = $event"
+          />
+          <CampoApontamnetosMovidesk
+            @update-dados-movidesk="dadosMovidesk = $event"
+          />
+        </div>
+    </Sidebar>
+
+    <Panel header="Eventos" class="mt-3">
+      <Qalendar :events="events" :config="config" />
+
+    </Panel>
+
+    <Panel header="Problemas" class="mt-3">
+      <TabelaProblemas
+        :dados-movidesk="dadosMovidesk"
+        :dados-tangerino="dadosTangerino"
+      />
+    </Panel>
+
     <!-- <h1>Verificador de Pontos</h1>
 
     <div>
@@ -35,8 +71,7 @@
 </template>
 
 <script setup lang="ts">
-
-const value1 = ref('0')
+const visible = ref(false);
 
 import CampoPontosTangerino, {
   DadosTangerino,

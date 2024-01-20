@@ -1,29 +1,24 @@
 <template>
-  <div class="card">
-    <div class="text-center p-2">
-      <img
-        src="https://www.movidesk.com/assets/pt-br/img/logo-movidesk-zenvia.svg"
-        class=""
-        style="height: 100px"
-      />
-    </div>
-    <div class="card-body">
-      <h5 class="card-title">Apontamentos Movidesk</h5>
-      <p class="card-text">
-        Exporte os apontamentos para um arquivo CSV. <br />
-      </p>
+  <div>
+    <Panel header="Apontamentos Movidesk">
+      <div class="flex flex-col gap-3">
+        <p>
+          Exporte os apontamentos para um arquivo CSV.
+        </p>
 
-      <input
-        class="form-control mb-3"
-        type="file"
-        accept=".csv"
-        ref="input"
-        @change="inputChange"
-      />
+        <input
+          class="mt-2"
+          type="file"
+          accept=".csv"
+          ref="input"
+          @change="inputChange"
+        />
 
-      <h3 v-if="dadosMovidesk.eventos.length" class="text-success">OK</h3>
-      <h3 v-else class="text-danger">Não carregado</h3>
-    </div>
+        <InlineMessage v-if="dadosMovidesk.eventos.length" severity="success">Importado com sucesso</InlineMessage>
+        <InlineMessage v-else severity="warn">Não importado</InlineMessage>
+      </div>
+    </Panel>
+
   </div>
 </template>
 

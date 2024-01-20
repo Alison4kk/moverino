@@ -6,7 +6,6 @@
         <p class="m-0">
           Bem vindo ao Zen_Geridesk, acesse as ferramentas atravez do menu superior.
         </p>
-        <InputSwitch/>
       </template>
     </Card>
   </div>

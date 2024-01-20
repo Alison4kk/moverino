@@ -1,54 +1,48 @@
 <template>
-  <div class="card">
-    <div class="text-center p-2">
-      <img
-        src="https://www.schemer.com.br/wp-content/uploads/2022/09/logo-tangerino-sf.png"
-        class=""
-        style="height: 100px"
-      />
-    </div>
-    <div class="card-body">
-      <h5 class="card-title">Pontos Tangerino</h5>
-      <p class="card-text">
-        Exporte os pontos para um arquivo CSV. <br />
-        Relatorios -> Folha de Ponto -> CSV
-      </p>
+  <div>
+    <Panel header="Pontos Tangerino">
+      <div class="flex flex-col gap-3">
+        <p>
+          Exporte os pontos para um arquivo CSV. <br />
+          Relatorios -> Folha de Ponto -> CSV
+        </p>
 
-      <input
-        class="form-control mb-3"
-        type="file"
-        accept=".csv"
-        ref="input"
-        @change="inputChange"
-      />
+        <input
+          class="mt-2"
+          type="file"
+          accept=".csv"
+          ref="input"
+          @change="inputChange"
+        />
 
-      <h3 v-if="dadosTangerino.eventos.length" class="text-success">OK</h3>
-      <h3 v-else class="text-danger">Não carregado</h3>
+        <InlineMessage v-if="dadosTangerino.eventos.length" severity="success">Importado com sucesso</InlineMessage>
+        <InlineMessage v-else severity="warn">Não importado</InlineMessage>
+      </div>
+    </Panel>
 
-
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import moment from 'moment';
+import { ref, watch } from "vue";
+import moment from "moment";
 
-const emit = defineEmits(['updateDadosTangerino']);
+const emit = defineEmits(["updateDadosTangerino"]);
 
 export type EventoTangerino = {
-  inicio: string,
-  fim: string,
-  data: string
-}
-
+  inicio: string;
+  fim: string;
+  data: string;
+};
 
 export type DadosTangerino = {
-  eventos: EventoTangerino[]
-}
+  eventos: EventoTangerino[];
+};
 
 const input = ref(null as HTMLInputElement | null);
-const dadosTangerino = ref({eventos: []} as DadosTangerino);
+const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
+
+
 
 const inputChange = () => {
   if (!input.value || !input.value.files || input.value?.files[0] == null)
@@ -72,46 +66,48 @@ const inputChange = () => {
       dadosCsv.push(linhas[i].split(","));
     }
     processarCsv(dadosCsv);
-
   };
-}
+};
 
 const processarCsv = (dadosCsv: string[][]) => {
   const dadosTangerinoNovo: DadosTangerino = {
-    eventos: []
+    eventos: [],
   };
 
   dadosCsv.forEach((linha, index) => {
+    const turnos = linha.slice(8, 15);
 
-   const turnos = linha.slice(8, 15);
+    for (let i = 0; i < turnos.length; i += 2) {
+      const minutoInicio = turnos[i]?.replaceAll("'", "");
+      const minutoFim = turnos[i + 1]?.replaceAll("'", "");
+      const data = linha[2]?.replaceAll("'", "");
 
-    for (let i = 0; i < turnos.length; i+=2) {
-      const minutoInicio = turnos[i]?.replaceAll("'", '');
-      const minutoFim = turnos[i + 1]?.replaceAll("'", '');
-      const data = linha[2]?.replaceAll("'", '');
-
-
-      if (!minutoInicio || !minutoFim || minutoInicio.indexOf(':') === -1 || minutoFim.indexOf(':') === -1)
+      if (
+        !minutoInicio ||
+        !minutoFim ||
+        minutoInicio.indexOf(":") === -1 ||
+        minutoFim.indexOf(":") === -1
+      )
         continue;
 
       const eventoTangerino: EventoTangerino = {
-        inicio:  moment( `${data} ${minutoInicio}`, 'DD/MM/YYYY HH:mm' ).format('YYYY-MM-DD HH:mm') ,
-        fim:  moment( `${data} ${minutoFim}`, 'DD/MM/YYYY HH:mm' ).format('YYYY-MM-DD HH:mm') ,
+        inicio: moment(`${data} ${minutoInicio}`, "DD/MM/YYYY HH:mm").format(
+          "YYYY-MM-DD HH:mm"
+        ),
+        fim: moment(`${data} ${minutoFim}`, "DD/MM/YYYY HH:mm").format(
+          "YYYY-MM-DD HH:mm"
+        ),
         data: data,
-      }
+      };
 
       dadosTangerinoNovo.eventos.push(eventoTangerino);
-
     }
   });
 
   dadosTangerino.value = dadosTangerinoNovo;
-}
+};
 
 watch(dadosTangerino, () => {
-  emit('updateDadosTangerino', dadosTangerino.value);
+  emit("updateDadosTangerino", dadosTangerino.value);
 });
-
-
-
 </script>
