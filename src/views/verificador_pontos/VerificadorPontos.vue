@@ -1,7 +1,12 @@
 <template>
   <div>
     <Toolbar>
+
       <template #start>
+        <h2 class="font-bold text-lg">Verificador de Pontos</h2>
+      </template>
+
+      <template #end>
         <Button
           icon="pi pi-database"
           label="Importar"

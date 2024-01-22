@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Card class="w-1/4">
+    <Card class="sm:w-full md:w-1/4">
       <template #title>Bem Vindo</template>
       <template #content>
         <p class="m-0">
