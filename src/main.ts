@@ -3,7 +3,8 @@ import App from './App.vue'
 import './registerServiceWorker'
 import router from './router'
 
-
+import primevueLocale  from '@/assets/modules_config/primevue/locale-pt-br.json';
+import LabeledInput from '@/components/utils/LabeledInput.vue';
 import PrimeVue from 'primevue/config';
 import 'primevue/resources/themes/lara-light-green/theme.css'
 import 'primeicons/primeicons.css'
@@ -24,6 +25,12 @@ import ColumnGroup from 'primevue/columngroup';   // optional
 import Row from 'primevue/row';                   // optional
 import SelectButton from 'primevue/selectbutton';
 import ToggleButton from 'primevue/togglebutton';
+import Divider from 'primevue/divider';
+import ToastService from 'primevue/toastservice'
+import Toast from 'primevue/toast';
+import Dropdown from 'primevue/dropdown';
+import Calendar from 'primevue/calendar';
+
 
 import './assets/main.css';
 
@@ -36,8 +43,13 @@ const app = createApp(App);
 app.use(router);
 app.use(PrimeVue, {
   unstyled: true,
-  pt: Lara                            //apply preset
+  pt: Lara,
+  ripple: true,
+  locale: primevueLocale['pt-br']
 });
+
+
+app.component('LabeledInput', LabeledInput);
 
 app.component('InputText', InputText);
 app.component('Menubar', Menubar);
@@ -55,5 +67,12 @@ app.component('ColumnGroup', ColumnGroup);
 app.component('Row', Row);
 app.component('SelectButton', SelectButton);
 app.component('ToggleButton', ToggleButton);
+app.component('Divider', Divider);
+app.component('Toast', Toast);
+app.component('Dropdown', Dropdown);
+app.component('Calendar', Calendar);
+app.use(ToastService);
 
 app.mount('#app');
+
+export {app};

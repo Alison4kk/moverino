@@ -2,55 +2,257 @@
   <div>
     <Panel header="Apontamentos Movidesk">
       <div class="flex flex-col gap-3">
-        <p>
-          Exporte os apontamentos para um arquivo CSV.
-        </p>
+        <LabeledInput label="Metodo de Importação:">
+          <SelectButton
+            :disabled="buscandoDaApi"
+            id="inputTipo"
+            v-model="tipo"
+            :options="['CSV', 'API']"
+          />
+        </LabeledInput>
 
-        <input
-          class="mt-2"
-          type="file"
-          accept=".csv"
-          ref="input"
-          @change="inputChange"
-        />
+        <div>
+          <div v-if="tipo == 'CSV'" class="flex flex-col gap-3">
+            <p>Exporte os apontamentos para um arquivo CSV.</p>
 
-        <InlineMessage v-if="dadosMovidesk.eventos.length" severity="success">Importado com sucesso</InlineMessage>
-        <InlineMessage v-else severity="warn">Não importado</InlineMessage>
+            <input
+              class="mt-2"
+              type="file"
+              accept=".csv"
+              ref="inputCsv"
+              :disabled="buscandoDaApi"
+              @change="inputCsvChange"
+            />
+
+            <InlineMessage
+              v-if="dadosMovidesk.eventos.length"
+              severity="success"
+              >Importado com sucesso</InlineMessage
+            >
+            <InlineMessage v-else severity="warn">Não importado</InlineMessage>
+          </div>
+
+          <div v-else-if="tipo == 'API'" class="flex flex-col gap-3">
+            <div v-if="!temToken">
+              <LabeledInput class="mb-2" label="Token:">
+                <InputText
+                  v-model="inputTokenValue"
+                  :disabled="buscandoDaApi"
+                  class="w-full"
+                />
+              </LabeledInput>
+              <Button
+                class="w-full"
+                @click="salvarToken"
+                :disabled="inputTokenValue == '' || buscandoDaApi"
+                label="Importar"
+              />
+            </div>
+            <div v-else class="flex flex-col gap-3">
+              <Button
+                class="w-full"
+                severity="danger"
+                @click="removerToken"
+                :disabled="buscandoDaApi"
+                label="Remover Token Salvo"
+              />
+              <InlineMessage
+                v-if="dadosMovidesk.pessoas.length"
+                severity="success"
+                >Importado com sucesso</InlineMessage
+              >
+              <InlineMessage v-else-if="buscandoDaApi" severity="info"
+                >Buscando dados...</InlineMessage
+              >
+              <InlineMessage v-else severity="warn"
+                >Não importado, verifique a conexão e o Token da
+                API</InlineMessage
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuração de importacao da API (usuario e intervalo de data) -->
+        <div v-if="tipo == 'API' && dadosMovidesk.pessoas.length">
+          <Divider />
+          <div class="flex gap-4 justify-start">
+            <LabeledInput label="Pessoa:">
+              <Dropdown
+                v-model="pessoaSelecionada"
+                :disabled="buscandoDaApi"
+                :options="opcoesDropdownPessoas"
+                optionLabel="name"
+                placeholder="Selecione uma pessoa"
+              />
+            </LabeledInput>
+
+            <LabeledInput label="Mês:">
+              <Calendar
+                view="month"
+                :disabled="buscandoDaApi"
+                v-model="mesSelecionado"
+                dateFormat="mm/yy"
+              />
+            </LabeledInput>
+          </div>
+          <Button :disabled="(!temToken || buscandoDaApi|| !pessoaSelecionada?.code || !mesSelecionado)" @click="buscarApontamentos" label="Buscar" class="mt-3" />
+        </div>
       </div>
     </Panel>
-
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import moment from "moment";
+import { useToast } from "primevue/usetoast";
+import { MovideskAPI, Pessoa, EventoMovidesk } from "@/classes/MovideskAPI";
+import LabeledInput from "../utils/LabeledInput.vue";
+
+const toast = useToast();
 
 const emit = defineEmits(["updateDadosMovidesk"]);
 
-export type EventoMovidesk = {
-  inicio: string;
-  fim: string;
-  titulo: string;
-  tituloResumido: string;
-  ticket: string;
-  data: string;
-};
-
 export type DadosMovidesk = {
   eventos: EventoMovidesk[];
+  pessoas: Pessoa[];
 };
 
-const input = ref(null as HTMLInputElement | null);
-const dadosMovidesk = ref({ eventos: [] } as DadosMovidesk);
+const tipo = ref("CSV" as "CSV" | "API");
+const buscandoDaApi = ref(false);
+if (localStorage.getItem("tipoImportacaoMovidesk"))
+  tipo.value = localStorage.getItem("tipoImportacaoMovidesk") as "CSV" | "API";
 
-const inputChange = () => {
+watch(tipo, () => {
+  localStorage.setItem("tipoImportacaoMovidesk", tipo.value);
+  dadosMovidesk.value = { eventos: [], pessoas: [] };
+
+  if (tipo.value == "API") {
+    buscarPessoasDesenvolvimento();
+  }
+});
+
+const dadosMovidesk = ref({ eventos: [], pessoas: [] } as DadosMovidesk);
+
+//Importação por API
+const movideskAPI = new MovideskAPI();
+const inputTokenValue = ref("" as string | null);
+const tokenSalvo = ref("" as string | null);
+const temToken = ref(false);
+
+const salvarToken = () => {
+  if (!inputTokenValue.value || inputTokenValue.value == "") return;
+
+  toast.add({
+    severity: "success",
+    summary: "Token salvo com sucesso",
+    life: 3000,
+  });
+  movideskAPI.setToken(inputTokenValue.value);
+  inputTokenValue.value = "";
+  atualizarToken();
+};
+
+const removerToken = () => {
+  movideskAPI.removeToken();
+  dadosMovidesk.value = { eventos: [], pessoas: [] };
+  toast.add({
+    severity: "success",
+    summary: "Token removido com sucesso",
+    life: 3000,
+  });
+  inputTokenValue.value = "";
+  atualizarToken();
+};
+
+const atualizarToken = () => {
+  tokenSalvo.value = movideskAPI.getToken();
+  temToken.value = tokenSalvo.value != null && tokenSalvo.value != "";
+
+  if (temToken.value) {
+    buscarPessoasDesenvolvimento();
+  }
+};
+atualizarToken();
+
+function buscarPessoasDesenvolvimento() {
+  if (!temToken.value || buscandoDaApi.value) return;
+  buscandoDaApi.value = true;
+  movideskAPI.buscarPessoasDesenvolvimento((pessoas, status) => {
+    if (status == "error") {
+      toast.add({
+        severity: "error",
+        summary: "Erro ao buscar pessoas",
+        detail: "Verifique se o token está correto",
+        life: 3000,
+      });
+      dadosMovidesk.value.pessoas = [];
+      buscandoDaApi.value = false;
+      return;
+    }
+    dadosMovidesk.value.pessoas = pessoas;
+    buscandoDaApi.value = false;
+  });
+}
+
+function buscarApontamentos() {
+  if (!temToken.value || buscandoDaApi.value || !pessoaSelecionada.value?.code || !mesSelecionado.value)
+    return;
+
+  buscandoDaApi.value = true;
+  movideskAPI.buscarApontamentos(
+    periodoSelecionadoUTC.value.inicio,
+    periodoSelecionadoUTC.value.fim,
+    pessoaSelecionada.value?.code,
+    (eventos, status) => {
+      if (status == "error") {
+        toast.add({
+          severity: "error",
+          summary: "Erro ao buscar apontamentos",
+          detail: "Verifique se o token está correto",
+          life: 3000,
+        });
+        dadosMovidesk.value.eventos = [];
+        buscandoDaApi.value = false;
+        return;
+      }
+      dadosMovidesk.value.eventos = eventos;
+      buscandoDaApi.value = false;
+    }
+  );
+}
+
+const opcoesDropdownPessoas = computed(() => {
+  const opcoes: { name: string; code: string }[] = [];
+  for (const pessoa of dadosMovidesk.value.pessoas) {
+    opcoes.push({
+      name: pessoa.nome,
+      code: pessoa.id,
+    });
+  }
+  return opcoes;
+});
+const pessoaSelecionada = ref(null as { name: string; code: string } | null);
+const mesSelecionado = ref(moment().startOf("month").toDate() as Date);
+const periodoSelecionadoUTC = computed(() => {
+  const inicio = moment(mesSelecionado.value).startOf("month").utc().format();
+  const fim = moment(mesSelecionado.value).endOf("month").utc().format();
+  return { inicio, fim };
+});
+
+//Importação por CSV
+const inputCsv = ref(null as HTMLInputElement | null);
+const inputCsvChange = () => {
   debugger;
-  if (!input.value || !input.value.files || input.value?.files[0] == null)
+  if (
+    !inputCsv.value ||
+    !inputCsv.value.files ||
+    inputCsv.value?.files[0] == null
+  )
     return;
 
   const reader = new FileReader();
-  reader.readAsText(input.value.files[0]);
+  reader.readAsText(inputCsv.value.files[0]);
 
   reader.onload = (event) => {
     const csv = event.target?.result;
@@ -71,7 +273,7 @@ const inputChange = () => {
 };
 
 const processarCsv = (dadosCsv: string[][]) => {
-  const dadosMovideskNovo: DadosMovidesk = { eventos: [] };
+  const dadosMovideskNovo: DadosMovidesk = { eventos: [], pessoas: [] };
 
   dadosCsv.forEach((linha, index) => {
     const data = linha[11];
@@ -105,7 +307,17 @@ const processarCsv = (dadosCsv: string[][]) => {
   dadosMovidesk.value = dadosMovideskNovo;
 };
 
-watch(dadosMovidesk, () => {
-  emit("updateDadosMovidesk", dadosMovidesk.value);
+watch(
+  [() => dadosMovidesk.value.pessoas, () => dadosMovidesk.value.eventos],
+  () => {
+    emit("updateDadosMovidesk", dadosMovidesk.value);
+  }
+);
+
+//Inicialização
+onMounted(() => {
+  if (tipo.value == "API") {
+    buscarPessoasDesenvolvimento();
+  }
 });
 </script>

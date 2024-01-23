@@ -55,7 +55,7 @@ const props = defineProps({
   },
 });
 
-watch([() => props.dadosTangerino, () => props.dadosMovidesk], () => {
+watch([() => props.dadosTangerino, () => props.dadosMovidesk.eventos], () => {
   console.log("watch");
 
   if (

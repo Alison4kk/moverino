@@ -21,12 +21,18 @@ import { ref, watch } from "vue";
 
 const darkMode = ref(false);
 
+if (localStorage.getItem("darkMode") == "true") {
+  darkMode.value = true;
+  document.documentElement.classList.add("dark");
+}
 
 watch(darkMode, (value) => {
   if (value) {
     document.documentElement.classList.add("dark");
+    localStorage.setItem("darkMode", "true");
   } else {
     document.documentElement.classList.remove("dark");
+    localStorage.setItem("darkMode", "false");
   }
 });
 

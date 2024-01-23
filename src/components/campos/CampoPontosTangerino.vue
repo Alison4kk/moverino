@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import moment from "moment";
 
 const emit = defineEmits(["updateDadosTangerino"]);
@@ -42,7 +42,12 @@ export type DadosTangerino = {
 const input = ref(null as HTMLInputElement | null);
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
 
-
+onMounted(() => {
+  const dadosTangerinoSalvo = localStorage.getItem('dadosTangerino');
+  if (dadosTangerinoSalvo) {
+    dadosTangerino.value = JSON.parse(dadosTangerinoSalvo);
+  }
+});
 
 const inputChange = () => {
   if (!input.value || !input.value.files || input.value?.files[0] == null)
@@ -109,5 +114,6 @@ const processarCsv = (dadosCsv: string[][]) => {
 
 watch(dadosTangerino, () => {
   emit("updateDadosTangerino", dadosTangerino.value);
+  localStorage.setItem('dadosTangerino', JSON.stringify(dadosTangerino.value));
 });
 </script>

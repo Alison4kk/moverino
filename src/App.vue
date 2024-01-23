@@ -7,6 +7,9 @@
       <router-view />
     </div>
     <Footer/>
+    <div id="container-tools">
+      <Toast/>
+    </div>
   </main>
 
 
@@ -15,7 +18,6 @@
 <script setup lang="ts">
 import Footer from './components/Footer.vue';
 import NavBar from './components/NavBar.vue';
-import {ref} from 'vue'
 
 
 </script>

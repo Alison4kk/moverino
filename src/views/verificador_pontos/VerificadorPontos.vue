@@ -1,7 +1,6 @@
 <template>
   <div>
     <Toolbar>
-
       <template #start>
         <h2 class="font-bold text-lg">Verificador de Pontos</h2>
       </template>
@@ -16,24 +15,27 @@
       </template>
     </Toolbar>
 
+    <Panel class="mt-3" header="Importar" :toggleable="true">
+      <div class="flex gap-3 flex-col">
+        <CampoPontosTangerino
+          @update-dados-tangerino="dadosTangerino = $event"
+        />
+        <CampoApontamnetosMovidesk
+          @update-dados-movidesk="dadosMovidesk = $event"
+        />
+      </div>
+    </Panel>
+
+<!--
     <Sidebar
       v-model:visible="visible"
       header="Importar Dados"
       style="width: 600px"
     >
-        <div class="flex gap-3 flex-col">
-          <CampoPontosTangerino
-            @update-dados-tangerino="dadosTangerino = $event"
-          />
-          <CampoApontamnetosMovidesk
-            @update-dados-movidesk="dadosMovidesk = $event"
-          />
-        </div>
-    </Sidebar>
+    </Sidebar> -->
 
     <Panel header="Eventos" class="mt-3">
       <Qalendar :events="events" :config="config" />
-
     </Panel>
 
     <Panel header="Problemas" class="mt-3">
@@ -42,36 +44,6 @@
         :dados-tangerino="dadosTangerino"
       />
     </Panel>
-
-    <!-- <h1>Verificador de Pontos</h1>
-
-    <div>
-      <Offcanvas title="Importar Dados" button-text="Importar">
-        <template #body>
-          <div class="d-flex flex-column gap-3">
-            <CampoPontosTangerino
-              @update-dados-tangerino="dadosTangerino = $event"
-            />
-            <CampoApontamnetosMovidesk
-              @update-dados-movidesk="dadosMovidesk = $event"
-            />
-          </div>
-        </template>
-      </Offcanvas>
-    </div>
-
-    <div class="mt-3">
-      <div class="is-light-mode">
-        <Qalendar :events="events" :config="config" />
-      </div>
-    </div>
-
-    <div class="mt-3">
-      <TabelaProblemas
-        :dados-movidesk="dadosMovidesk"
-        :dados-tangerino="dadosTangerino"
-      />
-    </div> -->
   </div>
 </template>
 
@@ -95,10 +67,10 @@ import Offcanvas from "@/components/utils/Offcanvas.vue";
 import TabelaProblemas from "./TabelaProblemas.vue";
 
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
-const dadosMovidesk = ref({ eventos: [] } as DadosMovidesk);
+const dadosMovidesk = ref({ eventos: [], pessoas: [] } as DadosMovidesk);
 
 //Calendario
-watch([dadosTangerino, dadosMovidesk], () => {
+watch([dadosTangerino, () => dadosMovidesk.value.eventos], () => {
   montarEventos();
 });
 
