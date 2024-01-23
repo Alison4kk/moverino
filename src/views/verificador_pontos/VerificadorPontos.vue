@@ -15,7 +15,9 @@
       </template>
     </Toolbar>
 
-    <Panel class="mt-3" header="Importar" :toggleable="true">
+    <!-- <Panel class="mt-3" header="Importar" :toggleable="true"> </Panel> -->
+
+    <Offcanvas :active="visible">
       <div class="flex gap-3 flex-col">
         <CampoPontosTangerino
           @update-dados-tangerino="dadosTangerino = $event"
@@ -24,9 +26,9 @@
           @update-dados-movidesk="dadosMovidesk = $event"
         />
       </div>
-    </Panel>
+    </Offcanvas>
 
-<!--
+    <!--
     <Sidebar
       v-model:visible="visible"
       header="Importar Dados"

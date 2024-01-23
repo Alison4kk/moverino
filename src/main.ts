@@ -5,6 +5,7 @@ import router from './router'
 
 import primevueLocale  from '@/assets/modules_config/primevue/locale-pt-br.json';
 import LabeledInput from '@/components/utils/LabeledInput.vue';
+import Mover from '@/components/utils/Mover.vue';
 import PrimeVue from 'primevue/config';
 import 'primevue/resources/themes/lara-light-green/theme.css'
 import 'primeicons/primeicons.css'
@@ -34,9 +35,6 @@ import Calendar from 'primevue/calendar';
 
 import './assets/main.css';
 
-// import "bootstrap/dist/css/bootstrap.min.css"
-// import "bootstrap"
-
 
 const app = createApp(App);
 
@@ -50,6 +48,7 @@ app.use(PrimeVue, {
 
 
 app.component('LabeledInput', LabeledInput);
+app.component('Mover', Mover);
 
 app.component('InputText', InputText);
 app.component('Menubar', Menubar);
