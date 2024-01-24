@@ -75,6 +75,11 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from '@fullcalendar/list';
+import tippy from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
+import moment from "moment";
+
 
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
 const dadosMovidesk = ref({
@@ -89,27 +94,43 @@ const { eventBus } = useEventBus();
 //Calendario
 
 const calendarOptions = computed(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
   initialView: "timeGridWeek",
   locale: "pt-br",
   headerToolbar: {
     left: "prev,next today",
     center: "title",
-    right: "dayGridMonth,timeGridWeek,timeGridDay",
+    right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
   },
   events: events.value,
   slotMinTime: "07:00:00",
   slotMaxTime: "19:00:00",
   slotDuration: "00:20:00",
-  height: 900,
+  height: 1000,
   allDaySlot: false,
-  eventMinHeight: 0
+  eventMinHeight: 0,
+  eventDidMount: (info: any) => {
+    tippy(info.el, {
+      content: `${info?.event?.title} <br><br> (${moment(info?.event?.start).format('hh:mm')} - ${moment(info?.event?.end).format('hh:mm')})`,
+      placement: 'auto',
+      allowHTML: true,
+    });
+  },
+  eventContent: (info: any) => {
+    const html =  /* html */`
+      <div class="overflow-hidden h-full">
+        ${info.event.title}
+      </div>
+    `;
+
+    return { html}
+  },
 }));
 
-const qalendarLightMode = ref(localStorage.getItem("darkMode") == "false");
-eventBus.on("theme-changed", (theme) => {
-  qalendarLightMode.value = theme == "light";
-});
+// const qalendarLightMode = ref(localStorage.getItem("darkMode") == "false");
+// eventBus.on("theme-changed", (theme) => {
+//   qalendarLightMode.value = theme == "light";
+// });
 
 watch([dadosTangerino, () => dadosMovidesk.value.eventos], () => {
   montarEventos();

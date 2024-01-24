@@ -80,7 +80,6 @@ const checadores = ref([] as (() => void)[]);
  * Verifica algum apontamento do movidesk ocupa algum mesmo espaço de tempo que algum outro apontamento do movidesk.
  */
 checadores.value.push(() => {
-  debugger;
   const eventos = props.dadosMovidesk.eventos;
 
   for (let i = 0; i < eventos.length; i++) {
@@ -124,8 +123,8 @@ checadores.value.push(() => {
       const fimTangerino = moment(eventoTangerino.fim);
 
       if (
-        inicio.isBetween(inicioTangerino, fimTangerino) &&
-        fim.isBetween(inicioTangerino, fimTangerino)
+        inicio.isBetween(inicioTangerino, fimTangerino, null, '[]') &&
+        fim.isBetween(inicioTangerino, fimTangerino, null, '[]')
       ) {
         contido = true;
         break;
@@ -143,7 +142,7 @@ checadores.value.push(() => {
 });
 
 /**
- * Dias em que os apontamentos do Movidesk não chegam a 95% dos apontamentos do Tangerino
+ *  Dias em houve mais de 15 minutos de diferença entre o apontamento do Tangerino e o apontamento do Movidesk
  */
 checadores.value.push(() => {
   const eventosTangerino = props.dadosTangerino.eventos;
@@ -173,10 +172,10 @@ checadores.value.push(() => {
       0
     );
 
-    if (minutosMovidesk / minutosTangerino < 0.95) {
+    if (minutosTangerino - minutosMovidesk >= 15) {
       problemas.value.push({
         tipo: "alerta",
-        descricao: `Apontamentos do Movidesk não chegam a 95% dos apontamentos do Tangerino no dia ${dia}`,
+        descricao: `Há mais de 15 minutos sem apontamentos no dia ${dia}`,
         data: dia,
       });
     }
