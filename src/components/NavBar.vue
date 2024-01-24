@@ -16,10 +16,12 @@
 </template>
 
 <script setup lang="ts">
+import useEventBus from "@/composables/useEventBus";
 import router from "@/router";
 import { ref, watch } from "vue";
 
 const darkMode = ref(false);
+const { eventBus } = useEventBus();
 
 if (localStorage.getItem("darkMode") == "true") {
   darkMode.value = true;
@@ -30,9 +32,11 @@ watch(darkMode, (value) => {
   if (value) {
     document.documentElement.classList.add("dark");
     localStorage.setItem("darkMode", "true");
+    eventBus.emit('theme-changed', 'dark');
   } else {
     document.documentElement.classList.remove("dark");
     localStorage.setItem("darkMode", "false");
+    eventBus.emit('theme-changed', 'light');
   }
 });
 

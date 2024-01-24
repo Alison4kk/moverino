@@ -7,8 +7,15 @@
 
       <template #end>
         <Button
+          v-if="dadosMovidesk.tipoImportacao == 'API'"
+          icon="pi pi-refresh"
+          label="Buscar da API"
+          class="mr-2"
+          @click="eventBus.emit('buscar-apontamentos-movidesk')"
+        />
+        <Button
           icon="pi pi-database"
-          label="Importar"
+          label="Importação"
           class="mr-2"
           @click="visible = true"
         />
@@ -17,26 +24,19 @@
 
     <!-- <Panel class="mt-3" header="Importar" :toggleable="true"> </Panel> -->
 
-    <Offcanvas :active="visible">
+    <Offcanvas header="Importação de Pontos" v-model="visible">
       <div class="flex gap-3 flex-col">
         <CampoPontosTangerino
           @update-dados-tangerino="dadosTangerino = $event"
         />
         <CampoApontamnetosMovidesk
+          ref="campoApontamentosMovidesk"
           @update-dados-movidesk="dadosMovidesk = $event"
         />
       </div>
     </Offcanvas>
 
-    <!--
-    <Sidebar
-      v-model:visible="visible"
-      header="Importar Dados"
-      style="width: 600px"
-    >
-    </Sidebar> -->
-
-    <Panel header="Eventos" class="mt-3">
+    <Panel header="Eventos" :class="{'is-light-mode': qalendarLightMode}" class="mt-3">
       <Qalendar :events="events" :config="config" />
     </Panel>
 
@@ -50,7 +50,6 @@
 </template>
 
 <script setup lang="ts">
-const visible = ref(false);
 
 import CampoPontosTangerino, {
   DadosTangerino,
@@ -67,11 +66,25 @@ import CampoApontamnetosMovidesk, {
 } from "@/components/campos/CampoApontamnetosMovidesk.vue";
 import Offcanvas from "@/components/utils/Offcanvas.vue";
 import TabelaProblemas from "./TabelaProblemas.vue";
+import useEventBus from '@/composables/useEventBus';
 
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
-const dadosMovidesk = ref({ eventos: [], pessoas: [] } as DadosMovidesk);
+const dadosMovidesk = ref({
+  eventos: [],
+  pessoas: [],
+  tipoImportacao: "CSV",
+} as DadosMovidesk);
+const visible = ref(false);
+
+const { eventBus } = useEventBus();
 
 //Calendario
+
+const qalendarLightMode = ref((localStorage.getItem("darkMode") == "false"));
+eventBus.on('theme-changed', (theme) => {
+  qalendarLightMode.value = (theme == 'light');
+});
+
 watch([dadosTangerino, () => dadosMovidesk.value.eventos], () => {
   montarEventos();
 });

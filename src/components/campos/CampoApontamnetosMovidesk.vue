@@ -92,10 +92,23 @@
                 :disabled="buscandoDaApi"
                 v-model="mesSelecionado"
                 dateFormat="mm/yy"
+                style="height: 42px;"
               />
             </LabeledInput>
           </div>
-          <Button :disabled="(!temToken || buscandoDaApi|| !pessoaSelecionada?.code || !mesSelecionado)" @click="buscarApontamentos" label="Buscar" class="mt-3" />
+
+          <Button
+            :disabled="
+              !temToken ||
+              buscandoDaApi ||
+              !pessoaSelecionada?.code ||
+              !mesSelecionado
+            "
+            @click="buscarApontamentos"
+            label="Buscar da API"
+            icon="pi pi-refresh"
+            class="mt-3"
+          />
         </div>
       </div>
     </Panel>
@@ -103,19 +116,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import moment from "moment";
 import { useToast } from "primevue/usetoast";
 import { MovideskAPI, Pessoa, EventoMovidesk } from "@/classes/MovideskAPI";
 import LabeledInput from "../utils/LabeledInput.vue";
+import useEventBus from "@/composables/useEventBus";
+import { useLoading } from "@/composables/useLoading";
 
 const toast = useToast();
-
 const emit = defineEmits(["updateDadosMovidesk"]);
+const { eventBus } = useEventBus();
 
 export type DadosMovidesk = {
   eventos: EventoMovidesk[];
   pessoas: Pessoa[];
+  tipoImportacao: "CSV" | "API";
 };
 
 const tipo = ref("CSV" as "CSV" | "API");
@@ -125,20 +141,36 @@ if (localStorage.getItem("tipoImportacaoMovidesk"))
 
 watch(tipo, () => {
   localStorage.setItem("tipoImportacaoMovidesk", tipo.value);
-  dadosMovidesk.value = { eventos: [], pessoas: [] };
+  dadosMovidesk.value = {
+    eventos: [],
+    pessoas: [],
+    tipoImportacao: tipo.value,
+  };
 
   if (tipo.value == "API") {
     buscarPessoasDesenvolvimento();
   }
 });
 
-const dadosMovidesk = ref({ eventos: [], pessoas: [] } as DadosMovidesk);
+const dadosMovidesk = ref({
+  eventos: [],
+  pessoas: [],
+  tipoImportacao: tipo.value,
+} as DadosMovidesk);
 
 //Importação por API
 const movideskAPI = new MovideskAPI();
 const inputTokenValue = ref("" as string | null);
 const tokenSalvo = ref("" as string | null);
 const temToken = ref(false);
+
+eventBus.on("buscar-apontamentos-movidesk", () => {
+  if (tipo.value == "API") buscarApontamentos();
+});
+
+onUnmounted(() => {
+  eventBus.off("buscar-apontamentos-movidesk");
+});
 
 const salvarToken = () => {
   if (!inputTokenValue.value || inputTokenValue.value == "") return;
@@ -155,7 +187,11 @@ const salvarToken = () => {
 
 const removerToken = () => {
   movideskAPI.removeToken();
-  dadosMovidesk.value = { eventos: [], pessoas: [] };
+  dadosMovidesk.value = {
+    eventos: [],
+    pessoas: [],
+    tipoImportacao: tipo.value,
+  };
   toast.add({
     severity: "success",
     summary: "Token removido com sucesso",
@@ -191,12 +227,26 @@ function buscarPessoasDesenvolvimento() {
       return;
     }
     dadosMovidesk.value.pessoas = pessoas;
+    buscarPessoaSalva();
     buscandoDaApi.value = false;
   });
 }
 
+function buscarPessoaSalva() {
+  if (localStorage.getItem("pessoaSelecionadaMovidesk")) {
+    pessoaSelecionada.value = JSON.parse(
+      localStorage.getItem("pessoaSelecionadaMovidesk") as string
+    );
+  }
+}
+
 function buscarApontamentos() {
-  if (!temToken.value || buscandoDaApi.value || !pessoaSelecionada.value?.code || !mesSelecionado.value)
+  if (
+    !temToken.value ||
+    buscandoDaApi.value ||
+    !pessoaSelecionada.value?.code ||
+    !mesSelecionado.value
+  )
     return;
 
   buscandoDaApi.value = true;
@@ -233,6 +283,18 @@ const opcoesDropdownPessoas = computed(() => {
   return opcoes;
 });
 const pessoaSelecionada = ref(null as { name: string; code: string } | null);
+
+watch(pessoaSelecionada, () => {
+  if (pessoaSelecionada.value) {
+    localStorage.setItem(
+      "pessoaSelecionadaMovidesk",
+      JSON.stringify(pessoaSelecionada.value)
+    );
+  } else {
+    localStorage.removeItem("pessoaSelecionadaMovidesk");
+  }
+});
+
 const mesSelecionado = ref(moment().startOf("month").toDate() as Date);
 const periodoSelecionadoUTC = computed(() => {
   const inicio = moment(mesSelecionado.value).startOf("month").utc().format();
@@ -240,10 +302,15 @@ const periodoSelecionadoUTC = computed(() => {
   return { inicio, fim };
 });
 
+//Mostrar Loading quando estiver buscando da API
+const { setState } = useLoading();
+watch(buscandoDaApi, () => {
+  setState(buscandoDaApi.value);
+});
+
 //Importação por CSV
 const inputCsv = ref(null as HTMLInputElement | null);
 const inputCsvChange = () => {
-  debugger;
   if (
     !inputCsv.value ||
     !inputCsv.value.files ||
@@ -273,7 +340,11 @@ const inputCsvChange = () => {
 };
 
 const processarCsv = (dadosCsv: string[][]) => {
-  const dadosMovideskNovo: DadosMovidesk = { eventos: [], pessoas: [] };
+  const dadosMovideskNovo: DadosMovidesk = {
+    eventos: [],
+    pessoas: [],
+    tipoImportacao: tipo.value,
+  };
 
   dadosCsv.forEach((linha, index) => {
     const data = linha[11];
