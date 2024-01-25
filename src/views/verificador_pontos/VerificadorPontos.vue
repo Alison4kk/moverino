@@ -50,6 +50,8 @@
         :dados-tangerino="dadosTangerino"
       />
     </Panel>
+
+    <span onclick="navigator.clipboard.writeText('TESTE')"></span>
   </div>
 </template>
 
@@ -111,9 +113,15 @@ const calendarOptions = computed(() => ({
   eventMinHeight: 0,
   eventDidMount: (info: any) => {
     tippy(info.el, {
-      content: `${info?.event?.title} <br><br> (${moment(info?.event?.start).format('hh:mm')} - ${moment(info?.event?.end).format('hh:mm')})`,
-      placement: 'auto',
+      content: `
+        ${info?.event?.title}
+        <br><br>
+        (<span style="cursor: pointer;" onclick="navigator.clipboard.writeText('${moment(info?.event?.start).format('hh:mm')}')">${moment(info?.event?.start).format('hh:mm')}</span> -
+        <span style="cursor: pointer;" onclick="navigator.clipboard.writeText('${moment(info?.event?.end).format('hh:mm')}')">${moment(info?.event?.end).format('hh:mm')}</span>)
+      `,
+      placement: 'left',
       allowHTML: true,
+      interactive: true
     });
   },
   eventContent: (info: any) => {
