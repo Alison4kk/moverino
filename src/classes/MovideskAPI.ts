@@ -1,20 +1,7 @@
+import { EventoMovidesk, Pessoa, Status } from '@/types/Movidesk';
 import moment, { Moment } from 'moment'
 
-export type Pessoa = {
-  id: string,
-  nome: string
-}
 
-export type EventoMovidesk = {
-  inicio: string;
-  fim: string;
-  titulo: string;
-  tituloResumido: string;
-  ticket: string;
-  data: string;
-};
-
-export type Status = 'ok' | 'error';
 
 export class MovideskAPI {
 
@@ -59,8 +46,11 @@ export class MovideskAPI {
                   inicio: moment(`${date} ${ap.periodStart}`, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm'),
                   fim: moment(`${date} ${ap.periodEnd}`, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm'),
                   titulo: `${ticket.id} - ${ticket.subject}` ,
-                  tituloResumido: `${ticket.id} - ${ticket.subject.slice(0, 20)}`,
-                  ticket: ticket.id
+                  tituloResumido: `${ticket.id} - ${ticket.subject.slice(0, 20)}${ticket.subject.length > 20 ? '...' : ''}`,
+                  assunto: ticket.subject,
+                  ticket: ticket.id,
+                  inicioHorario: moment(ap.periodStart, 'HH:mm:ss').format('HH:mm'),
+                  fimHorario: moment(ap.periodEnd, 'HH:mm:ss').format('HH:mm')
                 })
               })
             });

@@ -36,12 +36,59 @@
       </div>
     </Offcanvas>
 
-    <!-- <Panel header="Eventos" :class="{'is-light-mode': qalendarLightMode}" class="mt-3">
-      <Qalendar :events="events" :config="config" />
-    </Panel> -->
-
     <Panel header="Eventos" class="mt-3">
       <FullCalendar :options="calendarOptions" />
+
+      <Dialog
+        v-model:visible="dialogoEventoVisivel"
+        :style="{ width: '50rem' }"
+        modal
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+      >
+        <template #header>
+          <div class="font-bold text-lg">
+            <div v-if="isEventoMovidesk(dialogoEvento?.evento)">
+              <span
+                class="cursor-pointer"
+                @click="copiarTexto(dialogoEvento?.evento.ticket, 'Número do Ticket Copiado')"
+              >
+                <i class="pi pi-copy"></i>
+                {{ dialogoEvento?.evento.ticket }} -
+                {{ dialogoEvento?.evento.assunto }}
+              </span>
+            </div>
+            <div v-else>Trabalhando</div>
+          </div>
+        </template>
+        <div v-if="isEventoMovidesk(dialogoEvento?.evento)" class="flex flex-col gap-2">
+          <div>
+            {{ dialogoEvento.evento.data }}
+          </div>
+          <div>
+            <span
+              class="cursor-pointer"
+              @click="copiarTexto(dialogoEvento?.evento.inicioHorario, 'Horario Copiado')"
+            >
+              <i class="pi pi-copy"></i>
+              {{ dialogoEvento?.evento.inicioHorario }}</span
+            >
+            <i class="pi pi-arrow-right mx-2"></i>
+            <span
+              class="cursor-pointer"
+              @click="copiarTexto(dialogoEvento?.evento.fimHorario, 'Horario Copiado')"
+            >
+              <i class="pi pi-copy"></i> {{ dialogoEvento?.evento.fimHorario }}
+            </span>
+          </div>
+
+          <div>
+            <a :href="`https://areacentral.movidesk.com/Ticket/Edit/${dialogoEvento.evento.ticket}`" target="_blank" rel="noopener noreferrer">
+              <Button label="Abrir Ticket" link />
+            </a>
+          </div>
+
+        </div>
+      </Dialog>
     </Panel>
 
     <Panel header="Problemas" class="mt-3">
@@ -50,8 +97,6 @@
         :dados-tangerino="dadosTangerino"
       />
     </Panel>
-
-    <span onclick="navigator.clipboard.writeText('TESTE')"></span>
   </div>
 </template>
 
@@ -60,10 +105,7 @@ import CampoPontosTangerino, {
   DadosTangerino,
 } from "@/components/campos/CampoPontosTangerino.vue";
 
-import { Qalendar } from "qalendar";
 import "qalendar/dist/style.css";
-import { configInterface } from "qalendar/dist/src/typings/config.interface";
-import { eventInterface } from "qalendar/dist/src/typings/interfaces/event.interface";
 
 import { ref, watch, computed } from "vue";
 import CampoApontamnetosMovidesk, {
@@ -77,11 +119,13 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import listPlugin from '@fullcalendar/list';
-import tippy from 'tippy.js';
-import 'tippy.js/dist/tippy.css';
+import listPlugin from "@fullcalendar/list";
+import tippy from "tippy.js";
+import "tippy.js/dist/tippy.css";
 import moment from "moment";
-
+import { EventoMovidesk, isEventoMovidesk } from "@/types/Movidesk";
+import { EventoTangerino } from "@/types/Tangerino";
+import { useToast } from "primevue/usetoast";
 
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
 const dadosMovidesk = ref({
@@ -92,8 +136,21 @@ const dadosMovidesk = ref({
 const visible = ref(false);
 
 const { eventBus } = useEventBus();
+const toast = useToast();
 
 //Calendario
+const dialogoEventoVisivel = ref(false);
+const dialogoEvento = ref(null as EventExtendedProps | null);
+
+const copiarTexto = (texto: string, mensagem?: string) => {
+  navigator.clipboard.writeText(texto);
+  toast.add({
+    severity: "success",
+    summary: "Copiado",
+    detail: mensagem ?? "Texto copiado para a área de transferência",
+    life: 3000,
+  });
+};
 
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
@@ -116,29 +173,47 @@ const calendarOptions = computed(() => ({
       content: `
         ${info?.event?.title}
         <br><br>
-        (<span style="cursor: pointer;" onclick="navigator.clipboard.writeText('${moment(info?.event?.start).format('hh:mm')}')">${moment(info?.event?.start).format('hh:mm')}</span> -
-        <span style="cursor: pointer;" onclick="navigator.clipboard.writeText('${moment(info?.event?.end).format('hh:mm')}')">${moment(info?.event?.end).format('hh:mm')}</span>)
+        (${moment(info?.event?.start).format("hh:mm")} - ${moment(
+        info?.event?.end
+      ).format("hh:mm")})
       `,
-      placement: 'left',
+      placement: "auto",
       allowHTML: true,
-      interactive: true
     });
+
+    const element = info.el as HTMLElement;
+    const containerConteudo = element.querySelector('.evento-conteudo-container') as HTMLElement;
+    const height = element?.offsetHeight;
+
+    if (height <= 9) {
+      containerConteudo.style.fontSize = "6px";
+      containerConteudo.style.lineHeight = "7px";
+    } else if (height <= 15) {
+      containerConteudo.style.fontSize = "10px";
+      containerConteudo.style.lineHeight = "12px";
+    } else {
+      containerConteudo.style.fontSize = "13px";
+    }
+
+
   },
   eventContent: (info: any) => {
-    const html =  /* html */`
-      <div class="overflow-hidden h-full">
+    const html = /* html */ `
+      <div style="cursor: pointer;" class="evento-conteudo-container overflow-hidden h-full">
         ${info.event.title}
       </div>
     `;
 
-    return { html}
+    return { html };
+  },
+  eventClick(info: any) {
+    const extendedProps = info?.event?.extendedProps as EventExtendedProps;
+    if (!extendedProps) return;
+
+    dialogoEvento.value = extendedProps;
+    dialogoEventoVisivel.value = true;
   },
 }));
-
-// const qalendarLightMode = ref(localStorage.getItem("darkMode") == "false");
-// eventBus.on("theme-changed", (theme) => {
-//   qalendarLightMode.value = theme == "light";
-// });
 
 watch([dadosTangerino, () => dadosMovidesk.value.eventos], () => {
   montarEventos();
@@ -150,6 +225,12 @@ type Event = {
   end: string;
   description?: string;
   backgroundColor?: string;
+  extendedProps?: EventExtendedProps;
+};
+
+type EventExtendedProps = {
+  fonte: "movidesk" | "tangerino";
+  evento: EventoTangerino | EventoMovidesk;
 };
 
 const montarEventos = () => {
@@ -162,29 +243,17 @@ const montarEventos = () => {
       start: evento.inicio,
       end: evento.fim,
       backgroundColor: "#4caf50",
-      // time: {
-      //   start: evento.inicio,
-      //   end: evento.fim,
-      // },
-      // isEditable: false,
-      // color: "green",
-      // id: `${id}`,
+      extendedProps: { fonte: "tangerino", evento: evento },
     });
     id++;
   }
 
   for (const evento of dadosMovidesk.value.eventos) {
     novosEventos.push({
-      title: evento.titulo,
+      title: evento.tituloResumido,
       start: evento.inicio,
       end: evento.fim,
-      // time: {
-      //   start: evento.inicio,
-      //   end: evento.fim,
-      // },
-      // isEditable: false,
-      // color: "yellow",
-      // id: `${id}`,
+      extendedProps: { fonte: "movidesk", evento: evento },
     });
     id++;
   }
@@ -193,13 +262,4 @@ const montarEventos = () => {
 };
 
 const events = ref([] as Event[]);
-
-const config = ref({
-  dayBoundaries: {
-    start: 6,
-    end: 19,
-  },
-} as configInterface);
-
-//Fim calendario
 </script>

@@ -31,6 +31,7 @@ import ToastService from 'primevue/toastservice'
 import Toast from 'primevue/toast';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
+import Dialog from 'primevue/dialog';
 
 import './assets/main.css';
 
@@ -69,6 +70,7 @@ app.component('Divider', Divider);
 app.component('Toast', Toast);
 app.component('Dropdown', Dropdown);
 app.component('Calendar', Calendar);
+app.component('Dialog', Dialog);
 app.use(ToastService);
 
 app.mount('#app');

@@ -26,14 +26,11 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import moment from "moment";
+import {EventoTangerino} from '@/types/Tangerino';
 
 const emit = defineEmits(["updateDadosTangerino"]);
 
-export type EventoTangerino = {
-  inicio: string;
-  fim: string;
-  data: string;
-};
+
 
 export type DadosTangerino = {
   eventos: EventoTangerino[];

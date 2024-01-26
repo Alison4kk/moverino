@@ -119,7 +119,8 @@
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import moment from "moment";
 import { useToast } from "primevue/usetoast";
-import { MovideskAPI, Pessoa, EventoMovidesk } from "@/classes/MovideskAPI";
+import { MovideskAPI } from "@/classes/MovideskAPI";
+import { Pessoa, EventoMovidesk } from "@/types/Movidesk";
 import LabeledInput from "../utils/LabeledInput.vue";
 import useEventBus from "@/composables/useEventBus";
 import { useLoading } from "@/composables/useLoading";
@@ -157,6 +158,13 @@ const dadosMovidesk = ref({
   pessoas: [],
   tipoImportacao: tipo.value,
 } as DadosMovidesk);
+
+onMounted(() => {
+  const dadosMovideskSalvo = localStorage.getItem('dadosMovidesk');
+  if (dadosMovideskSalvo) {
+    dadosMovidesk.value = JSON.parse(dadosMovideskSalvo);
+  }
+});
 
 //Importação por API
 const movideskAPI = new MovideskAPI();
@@ -367,9 +375,12 @@ const processarCsv = (dadosCsv: string[][]) => {
         "YYYY-MM-DD HH:mm"
       ),
       titulo: `${linha[4]} - ${linha[6]}`,
+      assunto: linha[6],
       tituloResumido: `${linha[4]} - ${linha[6].slice(0, 20)}`,
       ticket: linha[4],
       data: data,
+      inicioHorario: minutoInicio,
+      fimHorario: minutoFim,
     };
 
     dadosMovideskNovo.eventos.push(eventoMovidesk);
@@ -382,6 +393,7 @@ watch(
   [() => dadosMovidesk.value.pessoas, () => dadosMovidesk.value.eventos],
   () => {
     emit("updateDadosMovidesk", dadosMovidesk.value);
+    localStorage.setItem('dadosMovidesk', JSON.stringify(dadosMovidesk.value));
   }
 );
 
