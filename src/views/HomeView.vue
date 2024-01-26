@@ -4,7 +4,7 @@
       <template #title>Bem Vindo</template>
       <template #content>
         <p class="m-0">
-          Bem vindo ao Zen_Geridesk, acesse as ferramentas atravez do menu superior.
+          Bem vindo ao Moverino, acesse as ferramentas atravez do menu superior.
         </p>
       </template>
     </Card>

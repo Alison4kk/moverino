@@ -1,12 +1,12 @@
 {
-  "name": "zen_geridesk",
+  "name": "Moverino",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "push-dist": "git subtree push --prefix dist https://github.com/Alison4kk/zen_geridesk.git gh-page",
-    "build-publish": "npm run build && git add . && git commit -m \"build\" && git push && git subtree push --prefix dist https://github.com/Alison4kk/zen_geridesk.git gh-page"
+    "push-dist": "git subtree push --prefix dist https://github.com/Alison4kk/Moverino.git gh-page",
+    "build-publish": "npm run build && git add . && git commit -m \"build\" && git push && git subtree push --prefix dist https://github.com/Alison4kk/Moverino.git gh-page"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.10",
