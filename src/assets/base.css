@@ -1,15 +1,15 @@
 :root {
-  --primary-50: 236 253 245;
-  --primary-100: 209 250 229;
-  --primary-200: 167 243 208;
-  --primary-300: 110 231 183;
-  --primary-400: 52 211 153;
-  --primary-500: 16 185 129;
-  --primary-600: 5 150 105;
-  --primary-700: 4 120 87;
-  --primary-800: 6 95 70;
-  --primary-900: 4 78 56;
-  --primary-950: 2 44 34;
+  --primary-50: 2254 245 238;
+  --primary-100: 253 233 215;
+  --primary-200: 250 206 174;
+  --primary-300: 246 172 123;
+  --primary-400: 241 127 70;
+  --primary-500: 237 91 30;
+  --primary-600: 223 69 23;
+  --primary-700: 185 50 21;
+  --primary-800: 147 42 25;
+  --primary-900: 119 37 23;
+  --primary-950: 64 16 10;
   --surface-0: 255 255 255;
   --surface-50: 248 250 252;
   --surface-100: 241 245 249;
@@ -23,3 +23,16 @@
   --surface-900: 15 23 42;
   --surface-950: 3 6 23;
 }
+
+/* --international-orange-50:  254 245 238;
+--international-orange-100: 253 233 215;
+--international-orange-200: 250 206 174;
+--international-orange-300: 246 172 123;
+--international-orange-400: 241 127 70;
+--international-orange-500: 237 91 30;
+--international-orange-600: 223 69 23;
+--international-orange-700: 185 50 21;
+--international-orange-800: 147 42 25;
+--international-orange-900: 119 37 23;
+--international-orange-950: 64 16 10; */
+

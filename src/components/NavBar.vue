@@ -1,15 +1,11 @@
 <template>
   <div class="card">
     <Menubar :model="items">
+      <template #start>
+        <img class="w-32 ms-3" src="/img/marca/logo-moverino.png" alt="">
+      </template>
       <template #end>
-        <ToggleButton
-          v-model="darkMode"
-          onLabel="Escuro"
-          offLabel="Claro"
-          onIcon="pi pi-moon"
-          offIcon="pi pi-sun"
-          class="w-[9rem]"
-        />
+        <DarkModeButton/>
       </template>
     </Menubar>
   </div>
@@ -19,6 +15,7 @@
 import useEventBus from "@/composables/useEventBus";
 import router from "@/router";
 import { ref, watch } from "vue";
+import DarkModeButton from "./utils/DarkModeButton.vue";
 
 const darkMode = ref(false);
 const { eventBus } = useEventBus();

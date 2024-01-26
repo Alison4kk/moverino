@@ -118,6 +118,7 @@ import useEventBus from "@/composables/useEventBus";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import ptBrLocale from "@fullcalendar/core/locales/pt-br";
 import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 import tippy from "tippy.js";
@@ -155,7 +156,7 @@ const copiarTexto = (texto: string, mensagem?: string) => {
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
   initialView: "timeGridWeek",
-  locale: "pt-br",
+  locale: ptBrLocale ,
   headerToolbar: {
     left: "prev,next today",
     center: "title",
@@ -193,9 +194,8 @@ const calendarOptions = computed(() => ({
       containerConteudo.style.lineHeight = "12px";
     } else {
       containerConteudo.style.fontSize = "13px";
+      containerConteudo.style.lineHeight = "14px";
     }
-
-
   },
   eventContent: (info: any) => {
     const html = /* html */ `
