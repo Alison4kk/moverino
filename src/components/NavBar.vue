@@ -2,7 +2,7 @@
   <div class="card">
     <Menubar :model="items">
       <template #start>
-        <img class="w-32 ms-3" src="/img/marca/logo-moverino.png" alt="">
+        <img class="w-32 ms-3" src="@/assets/img/marca/logo-moverino.png" alt="">
       </template>
       <template #end>
         <DarkModeButton/>
