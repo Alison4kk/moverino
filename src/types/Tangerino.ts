@@ -1,6 +1,8 @@
 export type EventoTangerino = {
   inicio: string;
+  inicioHorario: string;
   fim: string;
+  fimHorario: string;
   data: string;
 };
 

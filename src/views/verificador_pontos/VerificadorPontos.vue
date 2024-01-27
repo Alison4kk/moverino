@@ -50,7 +50,12 @@
             <div v-if="isEventoMovidesk(dialogoEvento?.evento)">
               <span
                 class="cursor-pointer"
-                @click="copiarTexto(dialogoEvento?.evento.ticket, 'Número do Ticket Copiado')"
+                @click="
+                  copiarTexto(
+                    dialogoEvento?.evento.ticket,
+                    'Número do Ticket Copiado'
+                  )
+                "
               >
                 <i class="pi pi-copy"></i>
                 {{ dialogoEvento?.evento.ticket }} -
@@ -60,14 +65,19 @@
             <div v-else>Trabalhando</div>
           </div>
         </template>
-        <div v-if="isEventoMovidesk(dialogoEvento?.evento)" class="flex flex-col gap-2">
+        <div v-if="dialogoEvento?.evento" class="flex flex-col gap-2">
           <div>
             {{ dialogoEvento.evento.data }}
           </div>
           <div>
             <span
               class="cursor-pointer"
-              @click="copiarTexto(dialogoEvento?.evento.inicioHorario, 'Horario Copiado')"
+              @click="
+                copiarTexto(
+                  dialogoEvento?.evento.inicioHorario,
+                  'Horario Copiado'
+                )
+              "
             >
               <i class="pi pi-copy"></i>
               {{ dialogoEvento?.evento.inicioHorario }}</span
@@ -75,28 +85,31 @@
             <i class="pi pi-arrow-right mx-2"></i>
             <span
               class="cursor-pointer"
-              @click="copiarTexto(dialogoEvento?.evento.fimHorario, 'Horario Copiado')"
+              @click="
+                copiarTexto(dialogoEvento?.evento.fimHorario, 'Horario Copiado')
+              "
             >
               <i class="pi pi-copy"></i> {{ dialogoEvento?.evento.fimHorario }}
             </span>
           </div>
 
-          <div>
-            <a :href="`https://areacentral.movidesk.com/Ticket/Edit/${dialogoEvento.evento.ticket}`" target="_blank" rel="noopener noreferrer">
+          <div v-if="isEventoMovidesk(dialogoEvento.evento)">
+            <a
+              :href="`https://areacentral.movidesk.com/Ticket/Edit/${dialogoEvento.evento.ticket}`"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Button label="Abrir Ticket" link />
             </a>
           </div>
-
         </div>
       </Dialog>
     </Panel>
 
-    <Panel header="Problemas" class="mt-3">
       <TabelaProblemas
         :dados-movidesk="dadosMovidesk"
         :dados-tangerino="dadosTangerino"
       />
-    </Panel>
   </div>
 </template>
 
@@ -125,8 +138,10 @@ import tippy from "tippy.js";
 import "tippy.js/dist/tippy.css";
 import moment from "moment";
 import { EventoMovidesk, isEventoMovidesk } from "@/types/Movidesk";
-import { EventoTangerino } from "@/types/Tangerino";
+import { EventoTangerino, isEventoTangerino } from "@/types/Tangerino";
 import { useToast } from "primevue/usetoast";
+import { dE } from "@fullcalendar/core/internal-common";
+import DarkModeButton from "@/components/utils/DarkModeButton.vue";
 
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
 const dadosMovidesk = ref({
@@ -156,7 +171,7 @@ const copiarTexto = (texto: string, mensagem?: string) => {
 const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
   initialView: "timeGridWeek",
-  locale: ptBrLocale ,
+  locale: ptBrLocale,
   headerToolbar: {
     left: "prev,next today",
     center: "title",
@@ -170,6 +185,9 @@ const calendarOptions = computed(() => ({
   allDaySlot: false,
   eventMinHeight: 0,
   eventDidMount: (info: any) => {
+
+    if (info.view.type == "listWeek") return;
+
     tippy(info.el, {
       content: `
         ${info?.event?.title}
@@ -183,24 +201,32 @@ const calendarOptions = computed(() => ({
     });
 
     const element = info.el as HTMLElement;
-    const containerConteudo = element.querySelector('.evento-conteudo-container') as HTMLElement;
-    const height = element?.offsetHeight;
+    const containerConteudo = element.querySelector(
+      ".evento-conteudo-container"
+    ) as HTMLElement;
 
-    if (height <= 9) {
-      containerConteudo.style.fontSize = "6px";
-      containerConteudo.style.lineHeight = "7px";
-    } else if (height <= 15) {
-      containerConteudo.style.fontSize = "10px";
-      containerConteudo.style.lineHeight = "12px";
-    } else {
-      containerConteudo.style.fontSize = "13px";
-      containerConteudo.style.lineHeight = "14px";
-    }
+    setTimeout(() => {
+      const height = element?.offsetHeight;
+
+      if (height <= 9) {
+        containerConteudo.style.fontSize = "6px";
+        containerConteudo.style.lineHeight = "7px";
+      } else if (height <= 15) {
+        containerConteudo.style.fontSize = "10px";
+        containerConteudo.style.lineHeight = "12px";
+      }
+    }, 0);
   },
   eventContent: (info: any) => {
+    const listWeek = info.view.type == "listWeek";
+
     const html = /* html */ `
-      <div style="cursor: pointer;" class="evento-conteudo-container overflow-hidden h-full">
-        ${info.event.title}
+      <div style="cursor: pointer; ${listWeek ? '' : 'font-size: 13px; line-height: 14px;'}"  class="evento-conteudo-container overflow-hidden h-full">
+        ${
+          info?.event?.extendedProps?.fonte == "tangerino"
+            ? info.event.title
+            : listWeek ? info.event.extendedProps.evento.titulo : info.event.extendedProps.evento.tituloResumido
+        }
       </div>
     `;
 
@@ -250,7 +276,7 @@ const montarEventos = () => {
 
   for (const evento of dadosMovidesk.value.eventos) {
     novosEventos.push({
-      title: evento.tituloResumido,
+      title: evento.titulo,
       start: evento.inicio,
       end: evento.fim,
       extendedProps: { fonte: "movidesk", evento: evento },
@@ -263,3 +289,10 @@ const montarEventos = () => {
 
 const events = ref([] as Event[]);
 </script>
+
+<style lang="scss">
+html.dark {
+  --fc-list-event-hover-bg-color: rgb(var(--surface-800));
+  --fc-neutral-bg-color: rgb(var(--surface-600));
+}
+</style>

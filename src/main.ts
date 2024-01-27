@@ -32,6 +32,8 @@ import Toast from 'primevue/toast';
 import Dropdown from 'primevue/dropdown';
 import Calendar from 'primevue/calendar';
 import Dialog from 'primevue/dialog';
+import Fieldset from 'primevue/fieldset';
+import InputNumber from 'primevue/inputnumber';
 
 import './assets/main.css';
 
@@ -71,6 +73,8 @@ app.component('Toast', Toast);
 app.component('Dropdown', Dropdown);
 app.component('Calendar', Calendar);
 app.component('Dialog', Dialog);
+app.component('Fieldset', Fieldset);
+app.component('InputNumber', InputNumber);
 app.use(ToastService);
 
 app.mount('#app');

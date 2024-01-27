@@ -12,6 +12,7 @@
         header: props.header,
         style: {width: props.width},
       }"
+      position="right"
       v-model:visible="visible"
     >
       <div :id="`sidebar_${uniqueId}`"></div>

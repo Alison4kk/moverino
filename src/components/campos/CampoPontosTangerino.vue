@@ -96,9 +96,11 @@ const processarCsv = (dadosCsv: string[][]) => {
         inicio: moment(`${data} ${minutoInicio}`, "DD/MM/YYYY HH:mm").format(
           "YYYY-MM-DD HH:mm"
         ),
+        inicioHorario: minutoInicio,
         fim: moment(`${data} ${minutoFim}`, "DD/MM/YYYY HH:mm").format(
           "YYYY-MM-DD HH:mm"
         ),
+        fimHorario: minutoFim,
         data: data,
       };
 
