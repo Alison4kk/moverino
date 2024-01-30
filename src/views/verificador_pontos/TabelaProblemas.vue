@@ -260,8 +260,9 @@ checadores.value.push(() => {
     );
 
     if (
+      minutosTangerino > 0 &&
       minutosTangerino - minutosMovidesk >=
-      configuracoes.value.periodoSemApontamentos.minutosTolerancia
+        configuracoes.value.periodoSemApontamentos.minutosTolerancia
     ) {
       problemas.value.push({
         tipo: "alerta",
