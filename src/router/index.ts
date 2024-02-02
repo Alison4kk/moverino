@@ -1,11 +1,12 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import VerificadorPontos from '../views/verificador_pontos/VerificadorPontos.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    redirect: '/verificador-pontos'
   },
   {
     path: '/verificador-pontos',

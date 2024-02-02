@@ -33,7 +33,7 @@
           </div>
 
           <div v-else-if="tipo == 'API'" class="flex flex-col gap-3">
-            <div v-if="!temToken">
+            <div v-if="!temToken" class="flex flex-col gap-3" >
               <LabeledInput class="mb-2" label="Token:">
                 <InputText
                   v-model="inputTokenValue"
@@ -41,11 +41,19 @@
                   class="w-full"
                 />
               </LabeledInput>
+
               <Button
                 class="w-full"
                 @click="salvarToken"
                 :disabled="inputTokenValue == '' || buscandoDaApi"
                 label="Importar"
+              />
+              <Button
+                class="w-full"
+                icon="pi pi-cloud-download"
+                v-if="bPodeBuscarToken"
+                @click="buscarTokenAdmin"
+                label="Buscar do Admin"
               />
             </div>
             <div v-else class="flex flex-col gap-3">
@@ -180,6 +188,19 @@ onUnmounted(() => {
   eventBus.off("buscar-apontamentos-movidesk");
 });
 
+const buscarTokenAdmin = () => {
+  fetch('/admin/ajax.php?pg=moverino_api&acao=recuperar-token-movidesk')
+    .then(response => response.json())
+    .then(data => {
+      if (data?.token) {
+        inputTokenValue.value = data.token;
+        salvarToken();
+      }
+    });
+}
+
+const bPodeBuscarToken = ref(window.location.href.includes('adm.areacentral.com.br'));
+
 const salvarToken = () => {
   if (!inputTokenValue.value || inputTokenValue.value == "") return;
 
@@ -305,8 +326,8 @@ watch(pessoaSelecionada, () => {
 
 const mesSelecionado = ref(moment().startOf("month").toDate() as Date);
 const periodoSelecionadoUTC = computed(() => {
-  const inicio = moment(mesSelecionado.value).startOf("month").utc().format();
-  const fim = moment(mesSelecionado.value).endOf("month").utc().format();
+  const inicio = moment(mesSelecionado.value).startOf("month").format('YYYY-MM-DD') + "T00:00:00z";
+  const fim = moment(mesSelecionado.value).endOf("month").format('YYYY-MM-DD') + "T23:59:59z";
   return { inicio, fim };
 });
 

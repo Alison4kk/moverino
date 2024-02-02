@@ -28,7 +28,7 @@ export class MovideskAPI {
   }
 
   buscarApontamentos(inicio: string, fim: string, codigo: string, callback: (data: EventoMovidesk[], status?: Status) => void) {
-    this.query('tickets', `$select=id,subject,createdDate&$filter=actions/any(action: action/timeAppointments/any(ap: ap/createdBy/id eq '${codigo}' and ap/date gt ${inicio} and ap/date lt ${fim}))&$expand=actions($select=origin,id),actions($expand=timeAppointments($expand=createdBy))`)
+    this.query('tickets', `$select=id,subject,createdDate&$filter=actions/any(action: action/timeAppointments/any(ap: ap/createdBy/id eq '${codigo}' and ap/date ge ${inicio} and ap/date lt ${fim}))&$expand=actions($select=origin,id),actions($expand=timeAppointments($expand=createdBy))`)
       .then(response => response.json())
       .then(data => {
         const eventosMovidesk: EventoMovidesk[] = [];
@@ -36,9 +36,14 @@ export class MovideskAPI {
           data.forEach((ticket) => {
             if (!ticket?.id || !ticket?.subject || !ticket?.actions) return;
             ticket.actions.forEach((action: any) => {
+
               if (!action?.timeAppointments || !Array.isArray(action.timeAppointments)) return;
+
               action.timeAppointments.forEach((ap: any) => {
-                if (ap.createdBy.id !== codigo || ap.date < inicio || ap.date > fim) return;
+
+                if (ap.createdBy.id !== codigo || (ap.date + 'z') < inicio || (ap.date + 'z') > fim) {
+                  return;
+                };
 
                 const date = ap.date.split('T')[0];
                 eventosMovidesk.push({
@@ -77,11 +82,13 @@ export class MovideskAPI {
   }
 
   public setToken(token: string) {
-    localStorage.setItem("tokenMovidesk", token);
+    localStorage.setItem("tokenMovidesk",  btoa(token));
   }
 
   public getToken(): string | null {
-    return localStorage.getItem("tokenMovidesk");
+    const tokenCriptografado = localStorage.getItem("tokenMovidesk");
+    if (!tokenCriptografado) return null;
+    return atob(tokenCriptografado);
   }
 
   public removeToken() {

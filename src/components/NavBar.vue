@@ -39,13 +39,6 @@ watch(darkMode, (value) => {
 
 const items = ref([
   {
-    label: "Home",
-    icon: "pi pi-home",
-    command: () => {
-      router.push({ name: "home" });
-    },
-  },
-  {
     label: "Verificador de Pontos",
     icon: "pi pi-clock",
     command: () => {
