@@ -33,7 +33,7 @@
           </div>
 
           <div v-else-if="tipo == 'API'" class="flex flex-col gap-3">
-            <div v-if="!temToken" class="flex flex-col gap-3" >
+            <div v-if="!temToken" class="flex flex-col gap-3">
               <LabeledInput class="mb-2" label="Token:">
                 <InputText
                   v-model="inputTokenValue"
@@ -83,7 +83,7 @@
         <!-- Configuração de importacao da API (usuario e intervalo de data) -->
         <div v-if="tipo == 'API' && dadosMovidesk.pessoas.length">
           <Divider />
-          <div class="flex gap-4 justify-start">
+          <div class="flex gap-4 justify-start flex-wrap">
             <LabeledInput label="Pessoa:">
               <Dropdown
                 v-model="pessoaSelecionada"
@@ -94,14 +94,32 @@
               />
             </LabeledInput>
 
-            <LabeledInput label="Mês:">
-              <Calendar
-                view="month"
-                :disabled="buscandoDaApi"
-                v-model="mesSelecionado"
-                dateFormat="mm/yy"
-                style="height: 42px;"
-              />
+            <LabeledInput label="Tipo do Periodo:">
+              <div class="flex flex-col gap-2">
+                <SelectButton
+                  v-model="tipoPeriodo"
+                  :options="opcoesTipoPeriodo"
+                  option-value="value"
+                  optionLabel="name"
+                />
+
+                <Calendar
+                  view="month"
+                  v-show="tipoPeriodo == 'mes'"
+                  :disabled="buscandoDaApi"
+                  v-model="mesSelecionado"
+                  dateFormat="mm/yy"
+                />
+
+                <Calendar
+                  v-show="tipoPeriodo == 'customizado'"
+                  selection-mode="range"
+                  :manual-input="false"
+                  :disabled="buscandoDaApi"
+                  v-model="periodoCustomSelecionado"
+                  dateFormat="dd/mm/yy"
+                />
+              </div>
             </LabeledInput>
           </div>
 
@@ -132,6 +150,8 @@ import { Pessoa, EventoMovidesk } from "@/types/Movidesk";
 import LabeledInput from "../utils/LabeledInput.vue";
 import useEventBus from "@/composables/useEventBus";
 import { useLoading } from "@/composables/useLoading";
+import SelectButton from "primevue/selectbutton";
+import { useStorage } from "@vueuse/core";
 
 const toast = useToast();
 const emit = defineEmits(["updateDadosMovidesk"]);
@@ -168,7 +188,7 @@ const dadosMovidesk = ref({
 } as DadosMovidesk);
 
 onMounted(() => {
-  const dadosMovideskSalvo = localStorage.getItem('dadosMovidesk');
+  const dadosMovideskSalvo = localStorage.getItem("dadosMovidesk");
   if (dadosMovideskSalvo) {
     dadosMovidesk.value = JSON.parse(dadosMovideskSalvo);
   }
@@ -189,17 +209,19 @@ onUnmounted(() => {
 });
 
 const buscarTokenAdmin = () => {
-  fetch('/admin/ajax.php?pg=moverino_api&acao=recuperar-token-movidesk')
-    .then(response => response.json())
-    .then(data => {
+  fetch("/admin/ajax.php?pg=moverino_api&acao=recuperar-token-movidesk")
+    .then((response) => response.json())
+    .then((data) => {
       if (data?.token) {
         inputTokenValue.value = data.token;
         salvarToken();
       }
     });
-}
+};
 
-const bPodeBuscarToken = ref(window.location.href.includes('adm.areacentral.com.br'));
+const bPodeBuscarToken = ref(
+  window.location.href.includes("adm.areacentral.com.br")
+);
 
 const salvarToken = () => {
   if (!inputTokenValue.value || inputTokenValue.value == "") return;
@@ -324,10 +346,66 @@ watch(pessoaSelecionada, () => {
   }
 });
 
+const tipoPeriodo = useStorage<"mes" | "semana-atual" | "customizado">(
+  "tipo-periodo",
+  "semana-atual"
+);
 const mesSelecionado = ref(moment().startOf("month").toDate() as Date);
+const periodoCustomSelecionado = ref<Date[]>([]);
+watch(periodoCustomSelecionado, () => {
+  localStorage.setItem(
+    "periodo-custom-selecionado",
+    JSON.stringify(periodoCustomSelecionado.value)
+  );
+});
+
+if (localStorage.getItem("periodo-custom-selecionado")) {
+  const datas = JSON.parse(
+    localStorage.getItem("periodo-custom-selecionado") as string
+  );
+  periodoCustomSelecionado.value = [new Date(datas[0]), new Date(datas[1])];
+} else {
+  periodoCustomSelecionado.value = [
+    moment().startOf("week").toDate(),
+    moment().endOf("week").toDate(),
+  ];
+}
+
+const opcoesTipoPeriodo = [
+  { name: "Semana Atual", value: "semana-atual" },
+  { name: "Mês", value: "mes" },
+  { name: "Customizado", value: "customizado" },
+];
+
 const periodoSelecionadoUTC = computed(() => {
-  const inicio = moment(mesSelecionado.value).startOf("month").format('YYYY-MM-DD') + "T00:00:00z";
-  const fim = moment(mesSelecionado.value).endOf("month").format('YYYY-MM-DD') + "T23:59:59z";
+  if (tipoPeriodo.value == "semana-atual") {
+    const inicio = moment().startOf("week").format("YYYY-MM-DD") + "T00:00:00z";
+    const fim = moment().endOf("week").format("YYYY-MM-DD") + "T23:59:59z";
+    return { inicio, fim };
+  }
+
+  if (
+    tipoPeriodo.value == "customizado" &&
+    periodoCustomSelecionado.value[0] &&
+    periodoCustomSelecionado.value[1]
+  ) {
+    const inicio =
+      moment(periodoCustomSelecionado.value[0]).format("YYYY-MM-DD") +
+      "T00:00:00z";
+    const fim =
+      moment(periodoCustomSelecionado.value[1]).format("YYYY-MM-DD") +
+      "T23:59:59z";
+
+    return { inicio, fim };
+  }
+
+  //Mes
+  const inicio =
+    moment(mesSelecionado.value).startOf("month").format("YYYY-MM-DD") +
+    "T00:00:00z";
+  const fim =
+    moment(mesSelecionado.value).endOf("month").format("YYYY-MM-DD") +
+    "T23:59:59z";
   return { inicio, fim };
 });
 
@@ -414,7 +492,7 @@ watch(
   [() => dadosMovidesk.value.pessoas, () => dadosMovidesk.value.eventos],
   () => {
     emit("updateDadosMovidesk", dadosMovidesk.value);
-    localStorage.setItem('dadosMovidesk', JSON.stringify(dadosMovidesk.value));
+    localStorage.setItem("dadosMovidesk", JSON.stringify(dadosMovidesk.value));
   }
 );
 

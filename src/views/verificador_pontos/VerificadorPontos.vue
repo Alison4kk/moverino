@@ -93,6 +93,33 @@
             </span>
           </div>
 
+          <div class="text-gray-400">
+            <span
+              class="cursor-pointer"
+              v-show="dialogoEvento?.anterior"
+              @click="
+                copiarTexto(
+                  dialogoEvento?.anterior ?? '',
+                  'Horario Copiado'
+                )
+              "
+            >
+              <i class="pi pi-copy"></i>
+              {{ dialogoEvento?.anterior }}</span
+            >
+            <span> | - |</span>
+            <span
+              class="cursor-pointer"
+              v-show="dialogoEvento?.posterior"
+              @click="
+                copiarTexto(dialogoEvento?.posterior ?? '', 'Horario Copiado')
+              "
+            >
+              <i class="pi pi-copy"></i> {{ dialogoEvento?.posterior }}
+            </span>
+
+          </div>
+
           <div v-if="isEventoMovidesk(dialogoEvento.evento)">
             <a
               :href="`https://areacentral.movidesk.com/Ticket/Edit/${dialogoEvento.evento.ticket}`"
@@ -194,7 +221,7 @@ const calendarOptions = computed(() => ({
         <br><br>
         (${moment(info?.event?.start).format("hh:mm")} - ${moment(
         info?.event?.end
-      ).format("hh:mm")})
+      ).format("HH:mm")})
       `,
       placement: "auto",
       allowHTML: true,
@@ -257,11 +284,27 @@ type Event = {
 type EventExtendedProps = {
   fonte: "movidesk" | "tangerino";
   evento: EventoTangerino | EventoMovidesk;
+  posterior?: string;
+  anterior?: string;
 };
 
 const montarEventos = () => {
   const novosEventos: Event[] = [];
   let id = 0;
+  const horariosEventos: string[] = [];
+
+  for (const evento of dadosTangerino.value.eventos) {
+    horariosEventos.push(evento.inicio);
+    horariosEventos.push(evento.fim);
+  }
+  for (const evento of dadosMovidesk.value.eventos) {
+    horariosEventos.push(evento.inicio);
+    horariosEventos.push(evento.fim);
+  }
+
+  horariosEventos.sort();
+  const horariosEventosUnsorted =  Array.from(horariosEventos) as string[];
+  horariosEventosUnsorted.sort((a, b) => a.localeCompare(b) * -1);
 
   for (const evento of dadosTangerino.value.eventos) {
     novosEventos.push({
@@ -275,11 +318,19 @@ const montarEventos = () => {
   }
 
   for (const evento of dadosMovidesk.value.eventos) {
+
+    const horarioPosterior = horariosEventos.find(
+      (h) => h > evento.fim
+    );
+    const horarioAnterior = horariosEventosUnsorted.find(
+      (h) => h < evento.inicio
+    );  
+
     novosEventos.push({
       title: evento.titulo,
       start: evento.inicio,
       end: evento.fim,
-      extendedProps: { fonte: "movidesk", evento: evento },
+      extendedProps: { fonte: "movidesk", evento: evento, posterior: horarioPosterior?.split(' ')[1], anterior: horarioAnterior?.split(' ')[1]},
     });
     id++;
   }
