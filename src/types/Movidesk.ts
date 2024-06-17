@@ -13,6 +13,9 @@ export type EventoMovidesk = {
   tituloResumido: string;
   ticket: string;
   data: string;
+  atividade?: string;
+  categoria: string;
+  emoji?: string;
 };
 
 export function isEventoMovidesk(obj: any): obj is EventoMovidesk {

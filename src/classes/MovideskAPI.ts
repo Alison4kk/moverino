@@ -6,6 +6,14 @@ import moment, { Moment } from 'moment'
 export class MovideskAPI {
 
   private readonly BASE_URL = "https://api.movidesk.com/public/v1";
+  private readonly CATEGORIA_EMOJI = {
+    "Customização": "👨‍💻",
+    "Melhoria": "🔧",
+    "Configuração": "💼",
+    "Dúvida": "💰",
+    "Erro": "👩‍💼",
+    "Serviço": "❓"
+  }
 
   buscarPessoasDesenvolvimento(callback: (data: Pessoa[], status?: Status) => void) {
     this.query('persons', `$select=id,businessName,teams&$filter=teams/any(e: e eq 'Desenvolvimento')`)
@@ -28,7 +36,7 @@ export class MovideskAPI {
   }
 
   buscarApontamentos(inicio: string, fim: string, codigo: string, callback: (data: EventoMovidesk[], status?: Status) => void) {
-    this.query('tickets', `$select=id,subject,createdDate&$filter=actions/any(action: action/timeAppointments/any(ap: ap/createdBy/id eq '${codigo}' and ap/date ge ${inicio} and ap/date lt ${fim}))&$expand=actions($select=origin,id),actions($expand=timeAppointments($expand=createdBy))`)
+    this.query('tickets', `$select=id,subject,createdDate,category&$filter=actions/any(action: action/timeAppointments/any(ap: ap/createdBy/id eq '${codigo}' and ap/date ge ${inicio} and ap/date lt ${fim}))&$expand=actions($select=origin,id),actions($expand=timeAppointments($expand=createdBy))`)
       .then(response => response.json())
       .then(data => {
         const eventosMovidesk: EventoMovidesk[] = [];
@@ -45,6 +53,7 @@ export class MovideskAPI {
                   return;
                 };
 
+                const catogoria = String(ticket.category).split('(')[0].trim();
                 const date = ap.date.split('T')[0];
                 eventosMovidesk.push({
                   data: moment(date).format('DD/MM/YYYY'),
@@ -55,7 +64,9 @@ export class MovideskAPI {
                   assunto: ticket.subject,
                   ticket: ticket.id,
                   inicioHorario: moment(ap.periodStart, 'HH:mm:ss').format('HH:mm'),
-                  fimHorario: moment(ap.periodEnd, 'HH:mm:ss').format('HH:mm')
+                  fimHorario: moment(ap.periodEnd, 'HH:mm:ss').format('HH:mm'),
+                  atividade: ap.activity ?? 'Sem atividade',
+                  categoria: catogoria
                 })
               })
             });
@@ -63,7 +74,6 @@ export class MovideskAPI {
           });
         }
         eventosMovidesk.sort((a, b) => a.inicio.localeCompare(b.inicio));
-        console.log(eventosMovidesk);
         callback(eventosMovidesk, 'ok');
 
       })

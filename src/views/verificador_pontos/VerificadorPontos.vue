@@ -66,7 +66,10 @@
           </div>
         </template>
         <div v-if="dialogoEvento?.evento" class="flex flex-col gap-2">
-          <div>
+          <div v-if="isEventoMovidesk(dialogoEvento.evento)">
+              {{ dialogoEvento.evento.categoria }} | {{ dialogoEvento.evento.data }}
+          </div>
+          <div v-else>
             {{ dialogoEvento.evento.data }}
           </div>
           <div>
@@ -90,6 +93,9 @@
               "
             >
               <i class="pi pi-copy"></i> {{ dialogoEvento?.evento.fimHorario }}
+            </span>
+            <span v-if="isEventoMovidesk(dialogoEvento.evento)">
+              ({{ dialogoEvento.evento?.atividade }})
             </span>
           </div>
 
@@ -167,8 +173,6 @@ import moment from "moment";
 import { EventoMovidesk, isEventoMovidesk } from "@/types/Movidesk";
 import { EventoTangerino, isEventoTangerino } from "@/types/Tangerino";
 import { useToast } from "primevue/usetoast";
-import { dE } from "@fullcalendar/core/internal-common";
-import DarkModeButton from "@/components/utils/DarkModeButton.vue";
 
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
 const dadosMovidesk = ref({
@@ -219,7 +223,10 @@ const calendarOptions = computed(() => ({
       content: `
         ${info?.event?.title}
         <br><br>
-        (${moment(info?.event?.start).format("hh:mm")} - ${moment(
+        ${info.event.extendedProps.evento?.categoria}
+        <br> ${info.event.extendedProps.evento?.atividade}
+        <br> 
+        (${moment(info?.event?.start).format("HH:mm")} - ${moment(
         info?.event?.end
       ).format("HH:mm")})
       `,

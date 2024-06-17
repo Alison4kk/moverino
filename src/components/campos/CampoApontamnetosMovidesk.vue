@@ -480,6 +480,7 @@ const processarCsv = (dadosCsv: string[][]) => {
       data: data,
       inicioHorario: minutoInicio,
       fimHorario: minutoFim,
+      categoria: '',
     };
 
     dadosMovideskNovo.eventos.push(eventoMovidesk);
