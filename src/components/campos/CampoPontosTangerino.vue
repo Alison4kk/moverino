@@ -7,13 +7,24 @@
           Relatorios -> Folha de Ponto -> CSV
         </p>
 
-        <input
-          class="mt-2"
-          type="file"
-          accept=".csv"
-          ref="input"
-          @change="inputChange"
-        />
+
+        <label>
+          
+          <div class="rounded-md border border-white p-5 text-center">
+            Importar
+          </div>
+
+          <input
+            class="mt-2 hidden"
+            type="file"
+            accept=".csv"
+            id="input-arquivo-tangerino"
+            ref="input"
+            @change="inputChange"
+          />
+        </label>
+
+
 
         <InlineMessage v-if="dadosTangerino.eventos.length" severity="success">Importado com sucesso</InlineMessage>
         <InlineMessage v-else severity="warn">Não importado</InlineMessage>

@@ -62,7 +62,7 @@
         </div>
       </Fieldset>
       <Fieldset legend="Periodo sem Apontamentos">
-        <div class="flex gap-3 items-center justify-between">
+        <div class="flex gap-3 items-center justify-between flex-wrap">
           <label for="minutosTolerancia"> Minutos de Tolerancia </label>
           <InputNumber
             suffix=" min"

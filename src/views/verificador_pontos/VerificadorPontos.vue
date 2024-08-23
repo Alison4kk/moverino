@@ -37,7 +37,42 @@
     </Offcanvas>
 
     <Panel header="Eventos" class="mt-3">
-      <FullCalendar :options="calendarOptions" />
+
+      <div class="flex gap-5">
+        <LabeledInput label="Periodo: ">
+          <Dropdown
+            v-model="visualiacaoCalendario"
+            :options="[
+              {label: 'Semana', value: 'timeGridWeek'},
+              {label: 'Mês', value: 'dayGridMonth'},
+              {label: 'Dia', value: 'timeGridDay'},
+              {label: 'Lista', value: 'listWeek'},
+            ]"
+            optionLabel="label"
+            optionValue="value"
+          />
+        </LabeledInput>
+        <div class="flex gap-2 items-end">
+          <Button
+            severity="secondary"
+            icon="pi pi-arrow-left"
+            @click="retrocederCalendario"
+          />
+          <Button
+            severity="secondary"
+            icon="pi pi-arrow-right"
+            @click="avancarCalendario"
+          />
+          <Button
+            severity="secondary"
+            label="Hoje"
+            @click="voltarHoje"
+          />
+        </div>
+
+      </div>
+
+      <FullCalendar ref="fullcalendarElement" :options="calendarOptions" class="mt-5" />
 
       <Dialog
         v-model:visible="dialogoEventoVisivel"
@@ -153,7 +188,7 @@ import CampoPontosTangerino, {
 
 import "qalendar/dist/style.css";
 
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import CampoApontamnetosMovidesk, {
   DadosMovidesk,
 } from "@/components/campos/CampoApontamnetosMovidesk.vue";
@@ -173,6 +208,9 @@ import moment from "moment";
 import { EventoMovidesk, isEventoMovidesk } from "@/types/Movidesk";
 import { EventoTangerino, isEventoTangerino } from "@/types/Tangerino";
 import { useToast } from "primevue/usetoast";
+import useScreenSize from "@/composables/useScreenSize";
+import LabeledInput from "@/components/utils/LabeledInput.vue";
+
 
 const dadosTangerino = ref({ eventos: [] } as DadosTangerino);
 const dadosMovidesk = ref({
@@ -184,6 +222,34 @@ const visible = ref(false);
 
 const { eventBus } = useEventBus();
 const toast = useToast();
+const {isSm, isMdOrMore, isLgOrMore} = useScreenSize()
+
+
+//Manipulação do calendário
+const fullcalendarElement = ref(null);
+const visualiacaoCalendario = ref("timeGridWeek");
+
+watch(visualiacaoCalendario, (nv) => {
+  fullcalendarElement.value?.calendar?.changeView(nv);
+});
+
+const avancarCalendario = () => {
+  fullcalendarElement.value?.calendar?.next();
+};
+
+const retrocederCalendario = () => {
+  fullcalendarElement.value?.calendar?.prev();
+};
+
+const voltarHoje = () => {
+  fullcalendarElement.value?.calendar?.today();
+};
+
+// onMounted(() => {
+
+//   window.calendario = fullcalendarElement.value?.calendar;
+  
+// })
 
 //Calendario
 const dialogoEventoVisivel = ref(false);
@@ -204,9 +270,9 @@ const calendarOptions = computed(() => ({
   initialView: "timeGridWeek",
   locale: ptBrLocale,
   headerToolbar: {
-    left: "prev,next today",
+    left: "",
     center: "title",
-    right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+    right: "",
   },
   events: events.value,
   slotMinTime: "07:00:00",

@@ -15,14 +15,23 @@
           <div v-if="tipo == 'CSV'" class="flex flex-col gap-3">
             <p>Exporte os apontamentos para um arquivo CSV.</p>
 
-            <input
-              class="mt-2"
-              type="file"
-              accept=".csv"
-              ref="inputCsv"
-              :disabled="buscandoDaApi"
-              @change="inputCsvChange"
-            />
+
+            <label>
+          
+              <div class="rounded-md border border-white p-5 text-center">
+                Importar
+              </div>
+
+              <input
+                class="mt-2 hidden"
+                type="file"
+                accept=".csv"
+                ref="inputCsv"
+                :disabled="buscandoDaApi"
+                @change="inputCsvChange"
+              />
+            </label>
+
 
             <InlineMessage
               v-if="dadosMovidesk.eventos.length"
